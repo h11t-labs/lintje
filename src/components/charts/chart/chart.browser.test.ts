@@ -747,12 +747,23 @@ describe('a chart in a scaled container', () => {
     ],
   }
 
-  async function scaled(scale: number, chart: ChartSpec = GROUPED): Promise<LintjeChart> {
+  async function scaled(
+    scale: number,
+    chart: ChartSpec = GROUPED,
+    by: 'transform' | 'zoom' | 'own zoom' = 'transform',
+    frameWidth = 1081,
+  ): Promise<LintjeChart> {
     const frame = document.createElement('div')
-    frame.style.width = '1081px'
-    frame.style.transform = `scale(${scale})`
-    frame.style.transformOrigin = '0 0'
+    frame.style.width = `${frameWidth}px`
     const tile = document.createElement('lintje-chart')
+    if (by === 'transform') {
+      frame.style.transform = `scale(${scale})`
+      frame.style.transformOrigin = '0 0'
+    } else if (by === 'zoom') frame.style.zoom = String(scale)
+    else {
+      tile.style.display = 'block'
+      tile.style.zoom = String(scale)
+    }
     tile.data = {
       title: 'Aanvragen per regio',
       description: 'Noord, Oost en Zuid, dit jaar en vorig jaar.',
@@ -797,8 +808,12 @@ describe('a chart in a scaled container', () => {
    * Measured from the drawing, not from the category's box: Firefox counts more in an svg
    * group's box than the bars, so its middle is not the category's.
    */
-  async function tooltipOffset(scale: number): Promise<{ x: number; y: number }> {
-    const tile = await scaled(scale)
+  async function tooltipOffset(
+    scale: number,
+    by: 'transform' | 'zoom' | 'own zoom' = 'transform',
+    frameWidth = 1081,
+  ): Promise<{ x: number; y: number }> {
+    const tile = await scaled(scale, GROUPED, by, frameWidth)
     await settledWidth(tile)
     const group = tile.shadowRoot!.querySelectorAll('.lintje-chart__bar-group')[0]!
     const bars = group.getBoundingClientRect()
@@ -806,9 +821,16 @@ describe('a chart in a scaled container', () => {
     group.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, ...at }))
     const tooltip = (): HTMLElement | null =>
       tile.shadowRoot!.querySelector<HTMLElement>('.lintje-chart-tooltip')
-    await expect.poll(tooltip).not.toBeNull()
-    // The tooltip is placed in the frame after it renders.
-    await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)))
+    // The tooltip is placed in the frame after it renders: read it once it stands still.
+    const seen: string[] = []
+    await expect
+      .poll(() => {
+        const box = tooltip()?.getBoundingClientRect()
+        seen.push(box ? `${box.left},${box.top}` : '')
+        const [a, b, c] = seen.slice(-3)
+        return Boolean(c) && a === b && b === c
+      })
+      .toBe(true)
     const box = tooltip()!.getBoundingClientRect()
     const corner = drawing(tile)!.getBoundingClientRect()
     document.body.replaceChildren()
@@ -824,6 +846,32 @@ describe('a chart in a scaled container', () => {
       expect(Math.abs(offset.y - plain.y * scale)).toBeLessThan(2)
     },
   )
+
+  // CSS `zoom` magnifies the layout itself: an ancestor's zoom draws the same chart larger, the
+  // element's own zoom draws the chart of its own, narrower width larger.
+  it('draws at the width of its layout under a zoom of 1.5, on an ancestor and on itself', async () => {
+    const plain = await settledWidth(await scaled(1))
+    document.body.replaceChildren()
+    const narrow = await settledWidth(await scaled(1, GROUPED, 'transform', Math.round(1081 / 1.5)))
+    document.body.replaceChildren()
+    const zoomed = await settledWidth(await scaled(1.5, GROUPED, 'zoom'))
+    document.body.replaceChildren()
+    const own = await settledWidth(await scaled(1.5, GROUPED, 'own zoom'))
+    // Within a pixel: the zoomed layout's width is rounded.
+    expect(Math.abs(zoomed - plain)).toBeLessThanOrEqual(1)
+    expect(Math.abs(own - narrow)).toBeLessThanOrEqual(1)
+  })
+
+  it.each([
+    ['on an ancestor', 'zoom'],
+    ['on itself', 'own zoom'],
+  ] as const)('stands the tooltip at its mark under a zoom of 1.5 %s', async (_, by) => {
+    const width = by === 'zoom' ? 1081 : Math.round(1081 / 1.5)
+    const plain = await tooltipOffset(1, 'transform', width)
+    const offset = await tooltipOffset(1.5, by)
+    expect(Math.abs(offset.x - plain.x * 1.5)).toBeLessThan(2)
+    expect(Math.abs(offset.y - plain.y * 1.5)).toBeLessThan(2)
+  })
 
   it('stands the tooltip of a heatmap cell at the cell, at scale 1.5', async () => {
     const tile = await scaled(1.5, {
