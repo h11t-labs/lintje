@@ -41,7 +41,6 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     unit: { type: String },
     stepper: { type: Boolean },
     stacked: { type: Boolean, reflect: true },
-    problem: { state: true },
   }
 
   /** `null` is an empty field; a host writes no parameter for it. */
@@ -56,8 +55,6 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   /** The −/+ buttons. Bind as `.stepper=${false}`, never `?stepper=`. */
   stepper: boolean = true
   stacked: boolean = false
-  /** The element's own message about a typed number it refused. */
-  protected problem: string = ''
   readonly #live = new LiveMessage(this)
 
   protected get formValue(): string {
@@ -65,7 +62,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   }
 
   private get message(): string {
-    return this.error || this.problem
+    return this.error || this.shownRefusal
   }
 
   protected override get footMessage(): string {
@@ -75,7 +72,6 @@ export class LintjeNumberInput extends LintjeFormInputElement {
   protected override willUpdate(changed: PropertyValues<this>): void {
     super.willUpdate(changed)
     if (!changed.has('value')) return
-    this.problem = ''
     this.refuse('')
     // The binding writes only a value that differs from the last; a refused number stays typed.
     const control = this.nativeControl
@@ -121,9 +117,8 @@ export class LintjeNumberInput extends LintjeFormInputElement {
     if (this.readonly) return false
     const raw = (event.target as HTMLInputElement).value
     const problem = this.problemOf(raw)
-    this.refuse(problem, () => (this.problem = problem))
+    this.refuse(problem)
     if (problem) return false
-    this.problem = ''
     const next = raw === '' ? null : Number(raw)
     if (next === this.value) return true
     this.value = next
@@ -186,7 +181,7 @@ export class LintjeNumberInput extends LintjeFormInputElement {
           ?disabled=${this.isDisabled}
           @input=${(event: Event) => {
             if (!this.readonly)
-              this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+              this.holdRefusal(this.problemOf((event.target as HTMLInputElement).value))
           }}
           @change=${this.change}
           @keydown=${(event: KeyboardEvent) => this.submitOnEnter(event, () => this.change(event))}

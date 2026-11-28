@@ -60,7 +60,6 @@ export class LintjeDateInput extends LintjeInputElement {
     stacked: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
     text: { state: true },
-    problem: { state: true },
     focusDay: { state: true },
   }
 
@@ -87,7 +86,6 @@ export class LintjeDateInput extends LintjeInputElement {
   override hint: string | undefined = 'dd-mm-jjjj'
 
   protected text: string = ''
-  protected problem: string = ''
   protected focusDay: string = ''
 
   private get todayDay(): string {
@@ -95,7 +93,7 @@ export class LintjeDateInput extends LintjeInputElement {
   }
 
   private get message(): string {
-    return this.error || this.problem
+    return this.error || this.shownRefusal
   }
 
   protected override get footMessage(): string {
@@ -116,7 +114,6 @@ export class LintjeDateInput extends LintjeInputElement {
     super.willUpdate(changed)
     if (changed.has('value')) {
       this.text = formatDate(this.value)
-      this.problem = ''
       this.refuse('')
     }
   }
@@ -129,7 +126,6 @@ export class LintjeDateInput extends LintjeInputElement {
   }
 
   private choose(day: string | null): void {
-    this.problem = ''
     this.refuse('')
     this.text = formatDate(day)
     if (day === this.value) return
@@ -149,7 +145,7 @@ export class LintjeDateInput extends LintjeInputElement {
     const problem = this.problemOf(text)
     if (problem) {
       this.text = text
-      this.refuse(problem, () => (this.problem = problem))
+      this.refuse(problem)
       return
     }
     const parsed = parseDate(text, partsOf(this.todayDay)![0])
@@ -292,7 +288,7 @@ export class LintjeDateInput extends LintjeInputElement {
           ?disabled=${this.isDisabled}
           @input=${(event: Event) => {
             if (!this.readonly)
-              this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+              this.holdRefusal(this.problemOf((event.target as HTMLInputElement).value))
           }}
           @change=${this.onChange}
           @keydown=${this.onFieldKeydown}

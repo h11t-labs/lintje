@@ -642,11 +642,14 @@ describe('an Escape a tooltip answered', () => {
 type Layer = Updating & { open: boolean }
 
 /**
- * A multiselect's list opened by the reader, then a popover the host opens beside it, without
- * the focus: the popover is the top layer. `first` is the one that connects first, and so hears
- * a key first unless the rule decides.
+ * A multiselect's list the reader opens and a popover the host opens beside it, without the
+ * focus, one after the other: `opened` says which first, `connected` which connects first, and so
+ * hears a key first unless the rule decides.
  */
-async function fieldThenPopover(first: 'field' | 'popover'): Promise<() => string[]> {
+async function twoLayers(
+  opened: 'field' | 'popover',
+  connected: 'field' | 'popover',
+): Promise<() => string[]> {
   const field = Object.assign(document.createElement('lintje-multiselect'), {
     label: 'Bronnen',
     options: [
@@ -661,10 +664,11 @@ async function fieldThenPopover(first: 'field' | 'popover'): Promise<() => strin
   popover.textContent = 'De doorlooptijd telt in werkdagen.'
   const anchor = document.createElement('button')
   anchor.textContent = 'Uitleg'
+  // The host closes it on Escape only: the list taking the focus leaves it open.
   popover.addEventListener('lintje-close', (event) => {
     if ((event as CustomEvent<{ reason: string }>).detail.reason === 'escape') popover.open = false
   })
-  if (first === 'field') document.body.append(field, anchor, popover)
+  if (connected === 'field') document.body.append(field, anchor, popover)
   else {
     document.body.append(anchor, popover)
     document.body.prepend(field)
@@ -672,23 +676,38 @@ async function fieldThenPopover(first: 'field' | 'popover'): Promise<() => strin
   await field.updateComplete
   const trigger = (): HTMLElement | null => inside(field, '.lintje-multiselect__field')
   await drawn(trigger)
-  trigger()!.click()
-  await expect.poll(() => field.open).toBe(true)
-  popover.open = true
-  await popover.updateComplete
-  await expect.poll(() => popover.shadowRoot!.querySelector('.lintje-popover')).not.toBeNull()
+  const openField = async (): Promise<void> => {
+    trigger()!.click()
+    await expect.poll(() => field.open).toBe(true)
+  }
+  const openPopover = async (): Promise<void> => {
+    popover.open = true
+    await popover.updateComplete
+    await expect.poll(() => popover.shadowRoot!.querySelector('.lintje-popover')).not.toBeNull()
+  }
+  if (opened === 'field') {
+    await openField()
+    await openPopover()
+  } else {
+    await openPopover()
+    await openField()
+  }
   return () => [field.open && 'field', popover.open && 'popover'].filter(Boolean) as string[]
 }
 
+const ORDERS = (['field', 'popover'] as const).flatMap((opened) =>
+  (['field', 'popover'] as const).map((connected) => ({ opened, connected })),
+)
+
 describe('two floating layers open at once', () => {
-  it.each(['field', 'popover'] as const)(
-    'the one opened last closes first, the %s connected first',
-    async (first) => {
-      const open = await fieldThenPopover(first)
+  it.each(ORDERS)(
+    'the one opened last closes first: the $opened opened first, the $connected connected first',
+    async ({ opened, connected }) => {
+      const open = await twoLayers(opened, connected)
       expect(open()).toEqual(['field', 'popover'])
       await userEvent.keyboard('{Escape}')
       await settle()
-      expect(open(), 'after Escape 1').toEqual(['field'])
+      expect(open(), 'after Escape 1').toEqual([opened])
       await userEvent.keyboard('{Escape}')
       await settle()
       expect(open(), 'after Escape 2').toEqual([])
