@@ -36,12 +36,13 @@
   font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  /* A part that stands against another, as the button at the end of a field, squares its seam. */
-  border-radius: var(--lintje-button-radius, var(--radius-control));
+  border-radius: var(--radius-control);
   transition: background var(--dur-hover) var(--ease-in-motion),
               color var(--dur-hover) var(--ease-in-motion),
               border-color var(--dur-hover) var(--ease-in-motion);
 }
+/* The side against the field it belongs to is square: field and button read as one frame. */
+.lintje-button--attached-start { border-start-start-radius: 0; border-end-start-radius: 0; }
 .lintje-button__label {
   min-width: 0;
   overflow: hidden;
