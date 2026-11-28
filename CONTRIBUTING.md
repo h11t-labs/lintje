@@ -451,9 +451,9 @@ die meldt een vak dat hij opnieuw waarneemt nog vóór het scherm ververst.
 
 `this.emit()` (`core/element.ts`) stuurt één `CustomEvent`, bubbling en composed, zodat het het
 element verlaat en de host bereikt; `emitLocal()` is alleen bubbling en stopt bij de shadow root die
-het onderdeel bevat; `emitOwn()` bubbelt niet en is alleen op het element zelf te horen. Wat een host ervan ziet en hoe hij antwoordt, staat in
-[`docs/guides/events.md`](docs/guides/events.md); welke tag wat stuurt, staat in de referentie van de
-styleguide, gelezen uit de `emit()`-aanroepen.
+het onderdeel bevat; `emitOwn()` bubbelt niet en is alleen op het element zelf te horen. Wat een
+host ervan ziet en hoe hij antwoordt, staat in [`docs/guides/events.md`](docs/guides/events.md);
+welke tag wat stuurt, staat in de referentie van de styleguide, gelezen uit de `emit()`-aanroepen.
 
 ```ts
 @click=${() => this.emit('lintje-tile-expand')}

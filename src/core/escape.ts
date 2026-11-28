@@ -23,11 +23,14 @@ export function answerEscape(event: KeyboardEvent): void {
 /** The open floating layers, the one opened last at the end. */
 const layers: Element[] = []
 
-/** A floating layer opened (and is the top one now), closed, or left the page. */
+/**
+ * A floating layer opened (and is the top one now) or closed. One already open keeps its place,
+ * so a layer moved in the page, which connects again, is not opened last.
+ */
 export function setLayerOpen(layer: Element, open: boolean): void {
   const at = layers.indexOf(layer)
-  if (at >= 0) layers.splice(at, 1)
-  if (open) layers.push(layer)
+  if (open && at < 0) layers.push(layer)
+  if (!open && at >= 0) layers.splice(at, 1)
 }
 
 /**
@@ -37,7 +40,9 @@ export function setLayerOpen(layer: Element, open: boolean): void {
 export function isTopLayer(layer: Element): boolean {
   for (let at = layers.length - 1; at >= 0; at--) {
     const candidate = layers[at]!
-    if (candidate.isConnected && ownsEscape(candidate)) return candidate === layer
+    // Gone from the page: a key never comes in the middle of a move, so it is gone for good.
+    if (!candidate.isConnected) layers.splice(at, 1)
+    else if (ownsEscape(candidate)) return candidate === layer
   }
   return true
 }

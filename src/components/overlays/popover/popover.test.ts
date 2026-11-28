@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest'
 import './popover'
 import { place } from '../../shared/place'
 import type { LintjePopover } from './popover'
+import { isTopLayer } from '../../../core/escape'
 
 async function mount(open: boolean): Promise<LintjePopover> {
   const anchor = document.createElement('button')
@@ -162,6 +163,24 @@ describe('lintje-popover', () => {
       new MouseEvent('mousedown', { bubbles: true, composed: true }),
     )
     expect(closes).toBe(0)
+  })
+})
+
+describe('the order of open layers', () => {
+  it('keeps an open popover that moves in the page in its place, under one opened later', async () => {
+    document.body.replaceChildren()
+    const first = await mount(true)
+    const later = await mount(true)
+    expect(isTopLayer(later)).toBe(true)
+    // A move is a disconnect and a connect: it opens nothing.
+    document.body.append(first)
+    await first.updateComplete
+    expect(isTopLayer(later)).toBe(true)
+    expect(isTopLayer(first)).toBe(false)
+    later.open = false
+    await later.updateComplete
+    expect(isTopLayer(first)).toBe(true)
+    document.body.replaceChildren()
   })
 })
 

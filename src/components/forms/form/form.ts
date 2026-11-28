@@ -243,6 +243,12 @@ export class LintjeForm extends LintjeElement {
       return
     }
     if (event.key !== 'Enter' || event.shiftKey || event.altKey) return
+    // A field that refused the text keeps the key, but the attempt counts, as with the button.
+    const field = this.#ownerOf(origin)
+    if (event.defaultPrevented && (field as { refusal?: unknown } | null)?.refusal) {
+      this.submit()
+      return
+    }
     // A combobox, a tag input or a date field that used the key itself keeps it.
     if (event.defaultPrevented || event.isComposing) return
     const oneLine = origin instanceof HTMLInputElement && ONE_LINE.has(origin.type)
@@ -363,10 +369,8 @@ export class LintjeForm extends LintjeElement {
     // A one-line field with the focus commits first: a press need not have left it. A textarea
     // commits on Ctrl+Enter itself, and a flush would commit it a second time.
     const active = deepActiveElement()
-    const owner = namedControls(this).some(
-      (control) => control === active || control.shadowRoot?.contains(active),
-    )
-    if (owner && active instanceof HTMLInputElement) this.#flush(active)
+    const oneLine = active instanceof HTMLInputElement && ONE_LINE.has(active.type)
+    if (oneLine && this.#ownerOf(active)) this.#flush(active)
     this.#refused = this.#readRefused()
     this.requestUpdate()
     const first = this.#refused[0]
@@ -430,6 +434,16 @@ export class LintjeForm extends LintjeElement {
       this.#items = this.#placeErrors()
       this.requestUpdate()
     }
+  }
+
+  /** The named field `node` belongs to: the field itself, or a part in its shadow root. */
+  #ownerOf(node: EventTarget | null | undefined): HTMLElement | null {
+    if (!(node instanceof Node)) return null
+    return (
+      namedControls(this).find(
+        (control) => control === node || Boolean(control.shadowRoot?.contains(node)),
+      ) ?? null
+    )
   }
 
   #flush(origin: EventTarget | undefined): void {
