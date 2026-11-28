@@ -7,7 +7,7 @@
  */
 import * as L from 'leaflet'
 import { nothing as nothingTemplate, render } from 'lit'
-import type { ChartController } from '../shared/controller'
+import { screenScale, type ChartController } from '../shared/controller'
 import type { Mode } from '../../../../core/element'
 import { prefersReducedMotion } from '../../../../core/motion'
 import { ownsEscape, standsIn } from '../../../../core/focus'
@@ -524,9 +524,10 @@ export class LeafletSurface {
     const top = Math.max(rect.top, area.top)
     const bottom = Math.min(rect.bottom, area.bottom)
     this.#focusTip = true
+    const scale = screenScale(anchor)
     this.#controller.showTooltipAt(
-      (left + right) / 2 - area.left,
-      (top + bottom) / 2 - area.top,
+      ((left + right) / 2 - area.left) / scale,
+      ((top + bottom) / 2 - area.top) / scale,
       markTip(drawing, value),
     )
   }

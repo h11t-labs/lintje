@@ -100,6 +100,19 @@ describe('lintje-segmented', () => {
     expect(badges).toEqual(['4', '0', '', undefined])
   })
 
+  it('marks a value off its default with the dot at its label and its words, and nothing on the default', async () => {
+    const element = await mount({ modified: true })
+    const label = () => element.renderRoot.querySelector('.lintje-label')!
+    expect(label().classList.contains('is-modified')).toBe(true)
+    expect(label().querySelector('.lintje-label__dot .visually-hidden')?.textContent).toBe(
+      'afwijkend van standaard',
+    )
+    element.modified = false
+    await element.updateComplete
+    expect(label().classList.contains('is-modified')).toBe(false)
+    expect(label().querySelector('.lintje-label__dot')).toBeNull()
+  })
+
   it("says the description of the reader's own choice, and nothing for one without or for the host", async () => {
     const described = [
       { value: 'week', label: 'Week' },

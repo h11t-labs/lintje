@@ -339,7 +339,8 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   zoomknoppen, vorige en volgende) ronden alleen hun buitenhoeken af. Een gevuld deel tegen de rand
   van een afgerond kader (de werkbalk van de teksteditor, de stapknoppen van het getalveld, de
   toevoeging en de knop van een veld) volgt de hoek binnen die rand, anders tekent het de ronde
-  hoek recht.
+  hoek recht. Een veld met een knop aan zijn eind is één kader: recht waar veld en knop elkaar
+  raken, rond alleen aan de buitenkant.
 - **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
   rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een
   hoek in een vlak met een hoek, en nooit op een vlak dat van de pagina afloopt. De band aan de kop
@@ -564,8 +565,11 @@ De besluiten hieronder gelden voor alle elementen.
 - **Een veld legt vast als de lezer het verlaat of op Enter drukt.** Enter verstuurt daarna het
   formulier eromheen, ook in een datum- of tijdveld. Weigert het veld wat getypt is — een dag die
   niet bestaat, een getal, dag of tijd buiten `min` en `max` — dan zegt het waarom op de plek van
-  de hint en legt het niets vast. Enter in dat veld verstuurt dan niets; de verzendknop verstuurt
-  wel, met de laatst vastgelegde waarde, terwijl de foutregel staat.
+  de hint en legt het niets vast. Zolang die tekst er staat, houdt het veld het formulier tegen,
+  met Enter en met de verzendknop: een gewoon formulier zet de focus erop met die melding, zoals
+  bij een leeg verplicht veld, en `lintje-form` zet de focus erop en noemt het in de
+  foutsamenvatting. De tekst verbeteren of wissen geeft het formulier vrij; een `error` van de host
+  houdt niets tegen.
 - **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
   eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
   wat vaststaat apart staat van wat de lezer typt. Ze hoort nooit bij de waarde en beschrijft het
@@ -655,8 +659,9 @@ De besluiten hieronder gelden voor alle elementen.
   80 %** (Cool Gray 900); in donker is hij zwart op 60 %, omdat het koelgrijs een donkere pagina
   blauw kleurt. Het venster staat erop met zijn eigen oppervlak en rand.
 - **Wat over de pagina ligt, ligt in een vaste volgorde**, sluier en kader samen, van onder naar
-  boven: het menu van de schil, een lade, een groot venster, een dialoog, een popover of
-  toggletip, een toast en een tooltip. Een vraag boven een open lade ligt er dus helemaal boven.
+  boven: het menu van de schil, een lade, het zoekpaneel of het meldingenblad, een groot venster,
+  een dialoog, een popover of toggletip, een toast en een tooltip. Een vraag boven een open lade,
+  zoekpaneel of meldingenblad ligt er dus helemaal boven.
   Wat onder de sluier ligt, krijgt geen klik; een popover, toggletip of tooltip in een venster
   staat erboven. Een toast blijft bereikbaar terwijl een venster open is: de aanwijzer raakt hem
   en Tab gaat van het venster naar de toast en terug. Reikt de voet van het venster tot waar de
@@ -1620,7 +1625,9 @@ kleinste correctie, en leg die hier vast.
   tabrij van de paginakop en de filterbalk eronder, de tabs onderaan, de actiebalk van het
   formulier, de vastgeplakte vraag en het vraagvak van het gesprek, een toast die blijft staan,
   en een eigen balk van de host met
-  `data-sticky`, die de shell meet. De foutsamenvatting scrolt een veld naar het midden. Een element
+  `data-sticky`, die de shell meet. Wat onder de balk van de shell plakt (de zin van de
+  filterbalk, de vraag van het gesprek), plakt onder de tabrij van een paginakop met tabs, en meet
+  zijn ruimte opnieuw zodra die lijn verschuift. De foutsamenvatting scrolt een veld naar het midden. Een element
   waar de focus toch onder belandt, scrollen de actiebalk, de toast en de selectiebalk van de tabel
   van zich vrij, met rand en al. Een toast staat boven wat verder onderaan plakt, nooit eroverheen;
   boven de tabs ook, behalve als een blad ze bedekt. Over een open venster ligt hij wel heen,

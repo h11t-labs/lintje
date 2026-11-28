@@ -80,6 +80,8 @@ form.addEventListener('lintje-submit', async (event) => {
 ```
 
 - In een `<lintje-form>` wordt de waarde van een veld gemeld in `lintje-submit`, niet gepost.
+- Staat er in een getal-, datum- of tijdveld tekst die het weigerde, dan komt er geen `lintje-submit`: het
+  formulier zet de focus op dat veld en noemt het in de foutsamenvatting, naast jouw `errors`.
 - `dirty` zegt dat de lezer niet-opgeslagen invoer heeft; vraag het in een `<lintje-dialog alert>` voordat je weggaat.
 - Met `draft-key` bewaart het formulier een concept in `localStorage`; zonder, in het geheugen.
   Het teruggezette concept lees je met `restoredDraft` en het moment waarop het geschreven is met
