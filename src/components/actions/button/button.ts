@@ -61,6 +61,7 @@ export class LintjeButton extends LintjeElement {
     accessibleName: { type: String, attribute: 'accessible-name' },
     description: { type: String },
     invalid: { type: Boolean },
+    block: { type: Boolean, reflect: true },
     attached: { type: String },
     slotted: { state: true },
   }
@@ -106,6 +107,8 @@ export class LintjeButton extends LintjeElement {
   declare description?: string
   /** `aria-invalid` on the inner control, for a button that stands for a field. */
   invalid: boolean = false
+  /** Fills the width of the line it stands on, as one action under a message or in a narrow column. */
+  block: boolean = false
   /**
    * The side that stands against the field the button belongs to, drawn square so field and
    * button read as one frame: `start` for the button at the end of a field. For a field's own

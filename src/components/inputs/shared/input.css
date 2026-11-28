@@ -37,11 +37,9 @@
 :host(lintje-range) {
   width: 180px;
 }
-:host(lintje-select) { width: 180px; }
-/* In the new style a select fills the column it stands in, as a text field does, up to a field's
-   widest; stacked it is the full width, as every field. */
-:host(lintje-select[data-style-version='new']) { width: 100%; max-width: var(--w-field); }
-:host(lintje-select[data-style-version='new'][stacked]) { max-width: none; }
+:host(lintje-select) { width: var(--select-width); max-width: var(--select-max-width); }
+/* Stacked it is the full width, as every field. */
+:host(lintje-select[stacked]) { max-width: none; }
 /* In rem, as its button and padding are: a larger default font leaves the time its room. */
 :host(lintje-time-input) { width: 7.5rem; }
 :host([hidden]) { display: none; }
@@ -83,11 +81,10 @@
 }
 .lintje-label {
   display: flex; align-items: baseline; gap: var(--space-2);
-  font-size: 0.875rem; font-weight: 700; color: var(--color-text-primary);
+  font: var(--field-label-font); font-size: var(--field-label-size); font-weight: 700;
+  color: var(--color-text-primary);
   padding: 0;
 }
-/* The new style's label is on the body size, bold, as the house style's form field has it. */
-[data-style-version='new'] .lintje-label { font: var(--text-ui); font-weight: 700; }
 .lintje-label.is-modified { color: var(--color-accent-text); }
 .lintje-label__dot {
   width: 6px; height: 6px; border-radius: var(--radius-round);

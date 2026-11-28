@@ -65,7 +65,7 @@
   top: calc(-1 * var(--space-1));
   left: var(--space-5);
   min-width: 8px; width: 8px; height: 8px; padding: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-round);
   font-size: 0; overflow: hidden;
 }
 

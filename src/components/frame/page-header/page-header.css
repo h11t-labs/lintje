@@ -81,9 +81,7 @@
 .lintje-page-header--shell.has-tabs { margin-bottom: 0; }
 /* In the new style the head stands above the content, outside its padding: it pads its words to
    the column itself. In the earlier style it stands in the padded content. */
-[data-style-version='new'] .lintje-page-header--shell.has-tabs {
-  padding-inline: calc(var(--page-pad-x) + var(--page-gutter));
-}
+.lintje-page-header--shell.has-tabs { padding-inline: var(--page-header-tabs-inset); }
 
 .lintje-page-header__kicker {
   font-size: var(--label-size);
@@ -115,7 +113,7 @@
    style never rounds a plane that runs off the page. */
 .lintje-page-header--band,
 .lintje-page-header--shell.lintje-page-header--band {
-  padding: var(--space-6) var(--space-6) var(--space-8);
+  padding: var(--space-6) var(--page-header-band-inset) var(--space-8);
   background: var(--color-hero-primary-bg);
   color: var(--color-hero-primary-text);
   --lintje-focus: var(--color-hero-primary-focus);
@@ -139,12 +137,6 @@
   --lintje-suggestions-line: var(--color-hero-primary-text);
   --lintje-suggestions-hover: var(--color-action-inverse-secondary-hover);
 }
-/* In the new style the band runs edge to edge above the content; the words keep to the column by
-   the page's own inset. */
-[data-style-version='new'] .lintje-page-header--band,
-[data-style-version='new'] .lintje-page-header--shell.lintje-page-header--band {
-  padding-inline: calc(var(--page-pad-x) + var(--page-gutter));
-}
 .lintje-page-header--band .lintje-page-header__title,
 .lintje-page-header--band .lintje-page-header__description,
 .lintje-page-header--band .lintje-page-header__meta,
@@ -154,11 +146,11 @@
 .lintje-page-header--band ::slotted([slot='tabs']) {
   --lintje-tabs-ink: var(--color-hero-primary-text);
   /* The row's line in the ink, faint: the band's lower edge where it sticks over the page. */
-  --lintje-tabs-ink-line: var(--alpha-white-16);
+  --lintje-tabs-ink-line: var(--color-hero-primary-line);
   --lintje-tabs-hover: var(--color-action-inverse-secondary-hover);
 }
 @media screen and (max-width: 767px) {
-  .lintje-page-header--band { padding: var(--space-5) var(--page-pad-x) var(--space-6); }
+  .lintje-page-header--band { padding: var(--space-5) var(--page-header-band-inset-narrow) var(--space-6); }
 }
 
 /* On paper the title stands at the paper's edge, in line with the content under it. */

@@ -77,7 +77,7 @@
 .lintje-chat-strip__suggestion {
   padding: 0 var(--space-1);
   border-bottom: 2px dashed var(--color-border-suggestion);
-  transition: background var(--dur-hover);
+  transition: background var(--dur-hover) var(--ease-in-motion);
 }
 .lintje-chat-strip__suggestion:hover { background: var(--color-bg-subtle); }
 .lintje-chat-strip__suggestion.is-pressed:hover { background: var(--color-term-bg); }

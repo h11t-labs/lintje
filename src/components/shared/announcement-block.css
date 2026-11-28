@@ -30,7 +30,7 @@
 .lintje-announcement__action::slotted(*) { align-self: flex-start; margin-left: calc(var(--space-5) + var(--space-2)); }
 .lintje-announcement__media::slotted(*) { flex: none; max-width: 40%; height: auto; }
 /* Wide enough for the action beside the text, wide enough for the full margin. */
-@container (min-width: 560px) {
+@container (min-width: 35rem) {
   .lintje-announcement__inner { padding: var(--space-4); }
   .lintje-announcement__body { flex-direction: row; align-items: center; gap: var(--space-4); }
   .lintje-announcement__lead { flex: 1; }

@@ -246,3 +246,20 @@ describe.skipIf(!scriptsPaste)('lintje-text-editor pastes only what it can write
     expect(element.value).toBe('### Openingstijden\n\nWij zijn **maandag** open.Klikkaart')
   })
 })
+
+// In both house styles: the new style's accent on a prose heading does not outweigh disabled.
+it.each(['classic', 'new'])(
+  'greys a heading with the rest when disabled, in the %s style',
+  async (style) => {
+    document.documentElement.dataset.styleVersion = style
+    try {
+      const element = await mount('### Overdracht\n\nTekst')
+      element.disabled = true
+      await element.updateComplete
+      const heading = surface(element).querySelector('h3')!
+      expect(getComputedStyle(heading).color).toBe(getComputedStyle(surface(element)).color)
+    } finally {
+      delete document.documentElement.dataset.styleVersion
+    }
+  },
+)

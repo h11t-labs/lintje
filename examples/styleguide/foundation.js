@@ -103,8 +103,8 @@ const PAGES = {
       {
         id: 'house-style',
         label: 'Per huisstijl',
-        note: 'Wat een element in de oude en de nieuwe huisstijl anders kleurt: de kop en de tekst van een uitklapper, de huidige pagina, het submenu, het kader van de segmenten, de titel van een venster en een waarschuwing. De oude waarde staat in de tokens, de nieuwe onder data-style-version="new".',
-        claims: by(/^--color-(expander|pagination|sub-nav|segmented|modal|alert)-/),
+        note: 'Wat een element in de oude en de nieuwe huisstijl anders kleurt: de kop en de tekst van een uitklapper, de huidige pagina, het submenu, het kader van de segmenten, de titel van een venster, een waarschuwing en de koppen van proza. De oude waarde staat in de tokens, de nieuwe onder data-style-version="new".',
+        claims: by(/^--color-(expander|pagination|sub-nav|segmented|modal|alert|prose)-/),
       },
     ],
   },
@@ -174,7 +174,7 @@ const PAGES = {
         id: 'page',
         label: 'Pagina, tegel en grafiek',
         note: 'De marges van de pagina en de tegel, de hoogtes van een grafiek en de dekking van een doorzichtig vlak erin.',
-        claims: by(/^--(page|tile|chart|grid|hero|lintje)-/),
+        claims: by(/^--(page(?!-header)|tile|chart|grid|hero|lintje)-/),
       },
       {
         id: 'corner',
@@ -200,8 +200,10 @@ const PAGES = {
       {
         id: 'house-style-size',
         label: 'Per huisstijl',
-        note: 'Wat een element in de oude en de nieuwe huisstijl anders vormt: de statusbalk, de keuzerand, de uitklapper, het submenu, de lijn tussen de segmenten en de lijnen van een venster. De oude waarde staat in de tokens, de nieuwe onder data-style-version="new".',
-        claims: by(/^--(tone-bar|field-error|border-choice|expander|sub-nav|segmented|modal)-/),
+        note: 'Wat een element in de oude en de nieuwe huisstijl anders vormt: de statusbalk, de keuzerand, de uitklapper, het submenu, de lijn tussen de segmenten, de lijnen van een venster, het kruimelpad, de voet, de knoppen van de bovenbalk, de koppen van proza, de inspringing van de paginakop, het label van een veld, de breedte van een keuzelijst en een rij velden in een formulier. De oude waarde staat in de tokens, de nieuwe onder data-style-version="new".',
+        claims: by(
+          /^--(tone-bar|field-error|border-choice|expander|sub-nav|segmented|modal|breadcrumbs|footer|top-bar|prose|page-header|field-label|select|form-section)-/,
+        ),
       },
     ],
   },
