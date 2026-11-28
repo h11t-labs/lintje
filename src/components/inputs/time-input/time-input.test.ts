@@ -3,6 +3,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import './time-input'
 import type { LintjeTimeInput } from './time-input'
 
+// A calendar left open would be an open layer under the next test's.
+afterEach(() => document.body.replaceChildren())
+
 async function mount(props: Partial<LintjeTimeInput> = {}): Promise<LintjeTimeInput> {
   const element = Object.assign(document.createElement('lintje-time-input'), {
     label: 'Tijdstip',
@@ -240,7 +243,11 @@ describe('the list', () => {
     await element.updateComplete
     let escaped = 0
     document.addEventListener('lintje-close', () => escaped++, { once: true })
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    // From where the focus is, as a key comes: in the panel, or on the page.
+    const focused = element.shadowRoot!.activeElement ?? document.body
+    focused.dispatchEvent(
+      new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, composed: true }),
+    )
     await element.updateComplete
     expect(element.open).toBe(false)
     expect(escaped).toBe(0)

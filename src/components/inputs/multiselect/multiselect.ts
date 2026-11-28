@@ -22,6 +22,7 @@ import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import { LintjeInputElement } from '../shared/input'
 import { ownsEscape } from '../../shared/focus-trap'
+import { answerEscape, isFreshEscape, isTopLayer, setLayerOpen } from '../../../core/escape'
 import { holdsFocus, standsIn } from '../../../core/focus'
 import { place, samePlace, stand, viewport, type Place } from '../../shared/place'
 import { resultsText } from '../../shared/search-text'
@@ -78,8 +79,8 @@ export class LintjeMultiselect extends LintjeInputElement {
   }
 
   private readonly onEscape = (event: KeyboardEvent): void => {
-    if (!this.open || event.key !== 'Escape' || event.defaultPrevented || !ownsEscape(this)) return
-    event.preventDefault()
+    if (!this.open || !isFreshEscape(event) || !ownsEscape(this) || !isTopLayer(this)) return
+    answerEscape(event)
     event.stopPropagation()
     void this.close()
   }
@@ -119,6 +120,7 @@ export class LintjeMultiselect extends LintjeInputElement {
 
   override connectedCallback(): void {
     super.connectedCallback()
+    if (this.open) setLayerOpen(this, true)
     document.addEventListener('mousedown', this.onOutsideClick)
     document.addEventListener('keydown', this.onEscape, true)
     window.addEventListener('scroll', this.onReflow, { capture: true, passive: true })
@@ -166,6 +168,7 @@ export class LintjeMultiselect extends LintjeInputElement {
   // one is unplaced. Focus moves to the search field only when the popover opens.
   protected override updated(changed: PropertyValues<this>): void {
     if (!changed.has('open')) return
+    setLayerOpen(this, this.open)
     this.#spot = null
     if (!this.open) return
     this.measure()

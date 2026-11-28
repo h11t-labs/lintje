@@ -557,6 +557,13 @@ describe('the map and the keyboard', () => {
       position: { x: box.width / 2, y: box.height / 2 },
     })
     await expect.poll(draft).not.toBeNull()
+    // The focus is still on the tool button, whose tooltip shows: that is the first Escape's.
+    const tip = (): Element | null =>
+      tool(element).closest('lintje-tooltip')?.shadowRoot?.querySelector('.lintje-tooltip') ?? null
+    await expect.poll(tip).not.toBeNull()
+    await userEvent.keyboard('{Escape}')
+    await expect.poll(tip).toBeNull()
+    expect(draft()).not.toBeNull()
     await userEvent.keyboard('{Escape}')
     await expect.poll(draft).toBeNull()
     expect(on()).toBe(true)

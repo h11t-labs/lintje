@@ -36,6 +36,7 @@ import { scrollRoot } from '../../../core/host-config'
 import { watchRoom } from '../../../core/scroll-room'
 import { holdsFocus, ownsEscape, standsIn } from '../../../core/focus'
 import { heightSettleMs } from '../../shared/transition'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 /** Where the zone sticks: under the top bar, or what the shell says sticks there with it. */
 function stickTop(element: Element): number {
@@ -121,8 +122,9 @@ export class LintjeFilterZone extends LintjeElement {
   }
 
   readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || event.defaultPrevented || !this.#overPage) return
+    if (!isFreshEscape(event) || !this.#overPage) return
     if (!ownsEscape(this)) return
+    answerEscape(event)
     event.stopPropagation()
     this.#toToggle = true
     this.act({ type: 'collapse' })

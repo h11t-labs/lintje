@@ -33,6 +33,7 @@ import type { ChartSpec } from '../shared/types'
 import { squarify, type TreemapRect } from './squarify'
 import { fitLabel, LABEL_PAD, LINE_HEIGHT, type LabelLine } from './treemap-labels'
 import { isMissing, treemapModel, type TreemapGroup, type TreemapModel } from './treemap-parts'
+import { isFreshEscape } from '../../../../core/escape'
 
 export { squarify } from './squarify'
 export { fitLabel } from './treemap-labels'
@@ -158,7 +159,7 @@ export function renderTreemapChart(spec: TreemapSpec, options: ChartOptions): Te
          ${ref(controller.attach)} ?data-in-view=${controller.inView} data-tooltip-anchor
          @keydown=${(event: KeyboardEvent) => {
            if (controller.dismiss(event)) return
-           const clearing = event.key === 'Escape' && selection.active != null
+           const clearing = isFreshEscape(event) && selection.active != null
            selection.escape(event)
            if (clearing) controller.sayStatus('Keuze opgeheven')
          }}>

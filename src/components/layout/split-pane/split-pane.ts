@@ -24,6 +24,7 @@ import { styleProps } from '../../../core/style-props'
 import { shadowCss } from '../../../core/styles'
 import '../../inputs/segmented/segmented'
 import splitPaneCss from './split-pane.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export type SplitPaneSide = 'start' | 'end'
 export type SplitPaneOrientation = 'horizontal' | 'vertical'
@@ -257,7 +258,8 @@ export class LintjeSplitPane extends LintjeElement {
   private readonly onKeydown = (event: KeyboardEvent): void => {
     // Stopped: the Escape puts the split back and closes no window around it.
     if (this.#lifted && event.key === 'Escape') {
-      event.preventDefault()
+      if (!isFreshEscape(event)) return
+      answerEscape(event)
       event.stopPropagation()
       this.cancelLift()
       return

@@ -11,6 +11,7 @@ import { nothing } from 'lit'
 import { isNewTabClick } from '../../../../core/links'
 import type { ChartOptions } from './controller'
 import type { ChartLink } from './types'
+import { answerEscape, isFreshEscape } from '../../../../core/escape'
 
 /** What travels to the host on a click. */
 export interface ChartSelection {
@@ -110,7 +111,8 @@ export function markSelection(
     },
     escape(event) {
       // Only while something is chosen, so an enclosing modal keeps Escape otherwise.
-      if (event.key !== 'Escape' || active == null) return
+      if (!isFreshEscape(event) || active == null) return
+      answerEscape(event)
       event.stopPropagation()
       clear()
     },

@@ -31,6 +31,7 @@ import { keyboardFocus } from './reveal'
 import { standsIn } from '../../../../core/focus'
 import { titleWhenCut } from '../../cut-text'
 import '../../../overlays/popover/popover'
+import { answerEscape, isFreshEscape } from '../../../../core/escape'
 
 /** The map's own height in a tile: on a phone taller, so all its buttons fit on the touch size. */
 export const MAP_HEIGHT = { desktop: 400, mobile: 280 } as const
@@ -591,13 +592,14 @@ export function renderMap(data: MapSpec, options: MapOptions): TemplateResult {
          @focusin=${onFocusIn} @focusout=${onFocusOut}
          @keydown=${(event: KeyboardEvent) => {
            if (event.key === 'Tab') return tabPanel(event)
-           if (event.key !== 'Escape') return
+           if (!isFreshEscape(event)) return
            // Escape undoes one thing: the tooltip, the tool, then the chosen mark, then the area.
            if (controller.dismiss(event)) return
            if (controller.mapTool) controller.mapTool = null
            else if (active) clear()
            else if (area) clearArea()
            else return
+           answerEscape(event)
            event.stopPropagation()
            controller.requestUpdate()
          }}>

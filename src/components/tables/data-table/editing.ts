@@ -20,6 +20,7 @@ import type {
   TableOption,
 } from '../../../types'
 import { uniqueId } from '../../../core/id'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export interface CellPosition {
   row: number
@@ -280,8 +281,8 @@ export class CellEditing {
     const onKeydown = (event: KeyboardEvent): void => {
       const field = event.currentTarget as HTMLInputElement | HTMLSelectElement
       event.stopPropagation()
-      if (event.key === 'Escape') {
-        event.preventDefault()
+      if (isFreshEscape(event)) {
+        answerEscape(event)
         this.cancel(ref)
       } else if (event.key === 'Enter') {
         event.preventDefault()

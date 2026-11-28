@@ -62,6 +62,7 @@ import type {
   ChatTermRange,
   FilterOption,
 } from '../../../types'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export type ChatComposerVariant = 'ask' | 'edit'
 export type ChatSendKey = 'enter' | 'ctrl-enter'
@@ -580,8 +581,8 @@ export class LintjeChatComposer extends LintjeElement {
     ) {
       event.preventDefault()
       this.complete(list[Math.min(this.completionIndex, list.length - 1)])
-    } else if (list.length && event.key === 'Escape') {
-      event.preventDefault()
+    } else if (list.length && isFreshEscape(event)) {
+      answerEscape(event)
       this.completionOff = true
     } else if (this.sends(event)) {
       event.preventDefault()
@@ -589,7 +590,8 @@ export class LintjeChatComposer extends LintjeElement {
     } else if (event.key === 'Enter' && !this.#plain && !event.isComposing) {
       event.preventDefault()
       document.execCommand('insertLineBreak')
-    } else if (event.key === 'Escape') {
+    } else if (isFreshEscape(event) && (this.variant === 'edit' || this.busy)) {
+      answerEscape(event)
       if (this.variant === 'edit') this.emitLocal('lintje-cancel')
       else if (this.busy) this.emit('lintje-answer-stop', {})
     } else if (event.key === 'ArrowUp' && this.draft === '' && this.recall) {

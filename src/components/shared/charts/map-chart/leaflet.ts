@@ -25,6 +25,7 @@ import {
 import { distanceKm, flatRing, idsInArea, rectRing } from './area'
 import { GEOS, type FeatureCollection } from './geo'
 import type { MapArea, MapSpec, MapTool, MapValue, WmsBasemap } from '../shared/types'
+import { answerEscape, isFreshEscape } from '../../../../core/escape'
 
 // Leaflet's own prefix puts a flag in front of the credit; the attribution stays neutral.
 const LEAFLET_PREFIX =
@@ -971,12 +972,12 @@ export class LeafletSurface {
    */
   readonly #onEscape = (event: KeyboardEvent): void => {
     const map = this.#controller.element ?? this.#container
-    if (event.key !== 'Escape' || !this.#options.tool || !map) return
+    if (!isFreshEscape(event) || !this.#options.tool || !map) return
     const focused = focusedElement()
     const nowhere = !focused || focused === document.body || focused === document.documentElement
     if (!(nowhere || standsIn(focused, map)) || !ownsEscape(map)) return
     event.stopPropagation()
-    event.preventDefault()
+    answerEscape(event)
     if (this.#draft) this.#cancelDraft()
     else this.#options.stopTool()
   }
