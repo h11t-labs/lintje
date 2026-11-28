@@ -61,6 +61,7 @@ export class LintjeButton extends LintjeElement {
     accessibleName: { type: String, attribute: 'accessible-name' },
     description: { type: String },
     invalid: { type: Boolean },
+    attached: { type: String },
     slotted: { state: true },
   }
 
@@ -105,6 +106,12 @@ export class LintjeButton extends LintjeElement {
   declare description?: string
   /** `aria-invalid` on the inner control, for a button that stands for a field. */
   invalid: boolean = false
+  /**
+   * The side that stands against the field the button belongs to, drawn square so field and
+   * button read as one frame: `start` for the button at the end of a field. For a field's own
+   * button; a free-standing button leaves it unset.
+   */
+  declare attached?: 'start'
 
   /** Whether the slot holds anything. The empty label span is hidden, not removed: removing the
    * `<slot>` could make `slotchange` fire again. */
@@ -155,6 +162,7 @@ export class LintjeButton extends LintjeElement {
       [`lintje-button--${this.size}`]: true,
       'is-disabled': this.disabled && !this.busy,
       'is-busy': this.busy,
+      'lintje-button--attached-start': this.attached === 'start',
     })
     const busy = this.busy ? 'true' : nothing
     const disabled = unavailable ? 'true' : nothing
