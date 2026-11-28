@@ -13,6 +13,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import buttonCss from './button.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 import { titleWhenCut } from '../../shared/cut-text'
+import { BUTTON_ICON_SIZE } from '../shared/button-icon'
 
 /**
  * `tertiary` is a word in the primary without a box, the house style's third weight; `inverse`
@@ -226,10 +227,7 @@ export class LintjeButton extends LintjeElement {
     return html`${this.busy ? html`<span class="lintje-button__busy" aria-hidden="true"></span>` : nothing}
       ${
         this.icon
-          ? renderIcon(this.icon, {
-              size: this.size === 'regular' ? 18 : 16,
-              className: 'lintje-button__icon',
-            })
+          ? renderIcon(this.icon, { size: BUTTON_ICON_SIZE, className: 'lintje-button__icon' })
           : nothing
       }
       <span
@@ -240,7 +238,7 @@ export class LintjeButton extends LintjeElement {
       ></span>
       ${
         this.iconRight
-          ? renderIcon(this.iconRight, { size: 16, className: 'lintje-button__icon' })
+          ? renderIcon(this.iconRight, { size: BUTTON_ICON_SIZE, className: 'lintje-button__icon' })
           : nothing
       }`
   }

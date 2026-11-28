@@ -37,25 +37,12 @@
   .lintje-announcement__action::slotted(*) { align-self: center; flex: none; margin-left: 0; }
 }
 
-/* The margin pulls the button's middle in line with the icon box; the hit area reaches the target. */
+/* The margin pulls the button's middle in line with the icon box. */
 .lintje-announcement__close {
-  position: relative;
-  width: var(--h-icon-button); height: var(--h-icon-button); flex: none;
-  display: flex; align-items: center; justify-content: center;
   --lintje-close-pull: calc((var(--space-5) - var(--h-icon-button)) / 2);
   margin: var(--lintje-close-pull) var(--lintje-close-pull) var(--lintje-close-pull) 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-text-primary);
-  cursor: pointer;
-  transition: background var(--dur-hover) var(--ease-in-motion);
 }
-.lintje-announcement__close:hover { background: var(--color-bg-subtle); }
-.lintje-announcement__close::after {
-  content: '';
-  position: absolute;
-  inset: min(0px, calc((100% - var(--h-target)) / 2));
-}
+.lintje-announcement__close:hover { color: var(--color-text-primary); }
 
 .lintje-announcement--warning { background: var(--color-alert-warning-bg); border-color: var(--color-alert-warning-line); }
 .lintje-announcement--warning .lintje-announcement__icon { color: var(--color-alert-warning-line); }

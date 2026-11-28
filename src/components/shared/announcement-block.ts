@@ -10,6 +10,7 @@ import { shadowCss } from '../../core/styles'
 import { renderIcon } from '../../icons/render'
 import { statusIcon, type Tone } from './tone'
 import announcementBlockCss from './announcement-block.css?inline'
+import dialogCloseCss from './dialog-close.css?inline'
 
 /** `outage` interrupts and cannot be closed; `error` is a failure the reader may put away. */
 export type AnnouncementKind = 'warning' | 'outage' | 'error' | 'info' | 'ok'
@@ -41,7 +42,7 @@ export const ANNOUNCEMENT_PREFIX: Record<AnnouncementKind, string> = {
   ok: 'Gelukt',
 }
 
-export const announcementBlockStyles: CSSResult = shadowCss(announcementBlockCss)
+export const announcementBlockStyles: CSSResult = shadowCss(dialogCloseCss + announcementBlockCss)
 
 export interface AnnouncementBlockOptions {
   kind?: AnnouncementKind
@@ -122,7 +123,7 @@ function content(kind: AnnouncementKind, options: AnnouncementBlockOptions): Tem
       options.onClose
         ? html`<button
           type="button"
-          class="lintje-announcement__close"
+          class="lintje-dialog-close lintje-announcement__close"
           aria-label="Mededeling sluiten"
           @click=${options.onClose}
         >

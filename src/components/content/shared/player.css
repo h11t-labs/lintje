@@ -29,7 +29,7 @@
   min-width: 0;
   --lintje-player-bar: 6px;
   height: var(--lintje-player-bar);
-  background: var(--color-border-default);
+  background: var(--color-slider-track);
   cursor: pointer;
   touch-action: none;
 }
@@ -38,13 +38,13 @@
   position: absolute;
   inset: calc((100% - var(--h-target)) / 2) 0;
 }
-.lintje-player__bar.is-disabled { cursor: not-allowed; }
+.lintje-player__bar.is-disabled { cursor: not-allowed; background: var(--color-border-default); }
 .lintje-player__bar-fill {
   height: 100%;
   background: var(--color-accent-line);
   pointer-events: none;
 }
-/* The head marks where the recording stands, drawn as the audio player's (`__head`). */
+/* The head marks where the recording stands, on every bar of both players. */
 .lintje-player__bar-handle {
   position: absolute;
   top: 50%;

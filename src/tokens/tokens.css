@@ -308,7 +308,7 @@
   /* One tab of the tab bar below 768 px: the glyph, the label and the line under them. */
   --h-tab-bar: 4rem;
   /* A sheet on a phone at most: a strip of veil stays above it, so it reads as a sheet. */
-  --h-sheet: 88vh;
+  --h-sheet: 88dvh;
   --h-control: 3rem;
   --h-button: 3rem;
   --h-button-compact: 2.5rem;
@@ -737,6 +737,9 @@
   /* The empty part of a progress bar. Light keeps the border grey: the inset grey vanishes on
      white; dark sinks it, so every fill reaches 3:1 on it. */
   --color-progress-track: var(--color-border-default);
+  /* The track of a slider under its accent fill: a grey between the ladder's two mid steps, 3:1 on
+     the surface in light and dark, and grey so the fill stands apart from it. */
+  --color-slider-track: color-mix(in srgb, var(--neutral-4), var(--neutral-5) 30%);
 
   /* --- Data colors ------------------------------------------------------- */
   /* One colour per variable, named after the Rijkshuisstijl colour. */

@@ -139,7 +139,7 @@ describe('lintje-audio-player', () => {
     await loaded(element, 100)
     element.currentTime = 25
     await element.updateComplete
-    const head = slider(element).querySelector<HTMLElement>('.lintje-audio-player__head')
+    const head = slider(element).querySelector<HTMLElement>('.lintje-player__bar-handle')
     expect(head?.getAttribute('aria-hidden')).toBe('true')
     expect(head?.style.left).toBe('25%')
   })

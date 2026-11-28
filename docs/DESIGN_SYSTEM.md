@@ -145,7 +145,7 @@ contrastondergrenzen verschillen:
 | Gebruik | Token | Ondergrens |
 |---|---|---|
 | Een vulling met witte inhoud erop | `--color-accent` (de primaire kleur zelf) | — |
-| Een lijn: omlijning, ring, baan van een schuifregelaar; ook de stip van een radio, die zonder witte inhoud op het oppervlak staat | `--color-accent-line` | 3:1 (WCAG 1.4.11) |
+| Een lijn: omlijning, ring, het gevulde stuk van een schuifregelaar; ook de stip van een radio, die zonder witte inhoud op het oppervlak staat | `--color-accent-line` | 3:1 (WCAG 1.4.11) |
 | Een woord, of een icoon dat ervoor in de plaats staat | `--color-accent-text`, `--color-link` | 4.5:1 (WCAG 1.4.3) |
 
 In licht zijn alle drie de primaire kleur. De lijntint is per constructie 3:1, dus **een woord
@@ -154,6 +154,10 @@ oppervlak (een gekozen rij, een actief menu-item, een term, vandaag in een gekoz
 in donker de teksttint: de lijntint haalt alleen op het oppervlak 3:1. Daarvoor zijn er
 `--color-selected-edge`, `--color-nav-active-edge`, `--color-term-line` en
 `--color-today-in-range`.
+
+**De baan van een schuifregelaar is grijs, geen themakleur**: `--color-slider-track`, 3:1 op het
+oppervlak, onder de regelaar, de positiebalk en de volumebalk. De vulling in de lijntint staat er
+zo los van, ook waar die even licht is als de baan.
 
 **Een tint voor de donkere modus tilt alleen de waargenomen lichtheid op** (OKLCH): hij houdt de
 eigen kleurtoon en chroma van de kleur, zodat hij leest als de primaire kleur, niet als
@@ -1416,6 +1420,10 @@ geheel, met zijn kop en alle knoppen.
 **Op een telefoon loopt de vastgeplakte actiebalk van rand tot rand**, zonder zijranden, met zijn
 knoppen op één lijn met de velden; op zijn eigen plek na het laatste veld is hij de laatste rij van
 het formulier.
+
+**Een hoogte naar het venster is die van het zichtbare venster** (`dvh`): de schil, het zijmenu,
+de opengeklapte filterzone en een blad. Op een telefoon met een meeschuivende adresbalk valt
+anders de onderkant weg.
 
 **Een element dat zijn vorm kiest naar zijn eigen breedte, meet een frame nadat die veranderde.**
 Zo verandert zijn maat nooit in de ronde van zijn waarnemer, die de browser anders als fout van de

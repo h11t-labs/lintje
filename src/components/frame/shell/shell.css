@@ -1,4 +1,4 @@
-:host { display: block; min-width: 0; min-height: 100vh; }
+:host { display: block; min-width: 0; min-height: 100dvh; }
 :host([hidden]) { display: none; }
 /* A short page is one sheet, not one sheet with the rest left empty. */
 @media print { :host { min-height: 0; } }

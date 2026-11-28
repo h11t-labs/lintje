@@ -40,7 +40,7 @@
   font: var(--text-small); color: var(--color-text-primary);
 }
 .lintje-filter-bar__dot {
-  width: 8px; height: 8px; border-radius: 50%;
+  width: 6px; height: 6px; border-radius: 50%;
   background: var(--color-attention-line); flex: none;
 }
 .lintje-filter-bar__reset {
@@ -50,6 +50,7 @@
   color: var(--color-link); text-decoration: underline;
   margin: 0 var(--space-2);
 }
+.lintje-filter-bar__reset:hover { color: var(--color-link-hover); }
 
 /* --- Opening and closing -------------------------------------------------- */
 /* `0fr -> 1fr` transitions to the content height without measuring it in JS. The body stays
@@ -146,6 +147,7 @@
   color: var(--color-link); text-decoration: underline;
   margin: 0 var(--space-2);
 }
+.lintje-summary-bar__reset:hover { color: var(--color-link-hover); }
 /* --- The one filter toggle ----------------------------------------------- */
 /* Last in the row in both states, so the second click lands on the toggle again. */
 .lintje-filter-toggle {
@@ -191,7 +193,7 @@
 
 /* Stuck and expanded: the zone unfolds where it stands; the z-index stays under the menu's 30. */
 .lintje-filter-bar.is-stuck-open {
-  max-height: calc(100vh - var(--lintje-shell-top, var(--h-topbar)));
+  max-height: calc(100dvh - var(--lintje-shell-top, var(--h-topbar)));
 }
 /* Only when the panel does not fit (`LintjeFilterZone` measures it): scrolling clips popovers. */
 .lintje-filter-bar.is-stuck-open.is-scrollable { overflow-y: auto; }
