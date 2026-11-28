@@ -569,7 +569,8 @@ De besluiten hieronder gelden voor alle elementen.
   met Enter en met de verzendknop: een gewoon formulier zet de focus erop met die melding, zoals
   bij een leeg verplicht veld, en `lintje-form` zet de focus erop en noemt het in de
   foutsamenvatting. De tekst verbeteren of wissen geeft het formulier vrij; een `error` van de host
-  houdt niets tegen.
+  houdt niets tegen. Verlaat de lezer het veld met een druk van muis of vinger, dan verschijnt of
+  verdwijnt de melding pas na het loslaten, zodat wat hij indrukt niet onder hem wegschuift.
 - **Een vaste toevoeging aan een veld staat in een eigen vak** (een valutateken, een domein, een
   eenheid, een vast voorvoegsel): het gedempte oppervlak met een lichte lijn naar de invoer, zodat
   wat vaststaat apart staat van wat de lezer typt. Ze hoort nooit bij de waarde en beschrijft het

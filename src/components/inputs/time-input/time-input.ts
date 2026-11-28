@@ -50,7 +50,6 @@ export class LintjeTimeInput extends LintjeInputElement {
     stacked: { type: Boolean, reflect: true },
     open: { type: Boolean, reflect: true },
     text: { state: true },
-    problem: { state: true },
     focusTime: { state: true },
   }
 
@@ -71,12 +70,11 @@ export class LintjeTimeInput extends LintjeInputElement {
   override hint: string | undefined = 'uu:mm'
 
   protected text: string = ''
-  protected problem: string = ''
   /** The time the keys stand on in the list. */
   protected focusTime: string = ''
 
   private get message(): string {
-    return this.error || this.problem
+    return this.error || this.shownRefusal
   }
 
   protected override get footMessage(): string {
@@ -101,7 +99,6 @@ export class LintjeTimeInput extends LintjeInputElement {
     super.willUpdate(changed)
     if (changed.has('value')) {
       this.text = isTime(this.value) ? this.value : ''
-      this.problem = ''
       this.refuse('')
     }
   }
@@ -113,7 +110,6 @@ export class LintjeTimeInput extends LintjeInputElement {
   }
 
   private choose(time: string | null): void {
-    this.problem = ''
     this.refuse('')
     this.text = time ?? ''
     if (time === this.value) return
@@ -137,7 +133,7 @@ export class LintjeTimeInput extends LintjeInputElement {
     const problem = this.problemOf(text)
     if (problem) {
       this.text = text
-      this.refuse(problem, () => (this.problem = problem))
+      this.refuse(problem)
       return
     }
     const parsed = parseTime(text)
@@ -294,7 +290,7 @@ export class LintjeTimeInput extends LintjeInputElement {
           ?disabled=${this.isDisabled}
           @input=${(event: Event) => {
             if (!this.readonly)
-              this.refuse(this.problemOf((event.target as HTMLInputElement).value))
+              this.holdRefusal(this.problemOf((event.target as HTMLInputElement).value))
           }}
           @change=${this.onChange}
           @keydown=${this.onKeydown}

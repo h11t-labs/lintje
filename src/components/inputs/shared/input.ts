@@ -32,35 +32,41 @@ const OPTIONAL = '(niet verplicht)'
 const MODIFIED = 'afwijkend van standaard'
 const MISSING = 'Vul dit veld in.'
 
-const RELEASES = ['pointerup', 'pointercancel']
+// Each ends a press. A press can also end without a `pointerup`: a context menu, a drag, the
+// native popup of a select; a key means the reader moved on.
+const RELEASES = ['pointerup', 'pointercancel', 'contextmenu', 'dragstart', 'dragend', 'keydown']
+/** Draws what waits anyway after this long, should a release never arrive. */
+const SAFETY_MS = 1000
 let pressed = false
 let tracking = false
+let waiting: (() => void)[] = []
+let safety: ReturnType<typeof setTimeout> | undefined
+
+function release(): void {
+  pressed = false
+  clearTimeout(safety)
+  safety = undefined
+  const runs = waiting
+  waiting = []
+  // After the click the release makes.
+  if (runs.length) setTimeout(() => runs.forEach((run) => run()))
+}
 
 /** Whether a pointer is down anywhere on the page, read when a press makes a field let go. */
 function trackPresses(): void {
   if (tracking || typeof window === 'undefined') return
   tracking = true
   window.addEventListener('pointerdown', () => (pressed = true), true)
-  for (const type of RELEASES) window.addEventListener(type, () => (pressed = false), true)
-  window.addEventListener('blur', (event) => {
-    if (event.target === window) pressed = false
-  })
+  for (const type of RELEASES) window.addEventListener(type, release, true)
+  // The window losing focus ends the press; a field's own blur reaches it only in capture.
+  window.addEventListener('blur', (event) => event.target === window && release())
 }
 
 /** Runs `run` now, or once the pointer that is down is released: after the click it makes. */
 function afterPress(run: () => void): void {
   if (!pressed) return run()
-  const done = new AbortController()
-  const release = (): void => {
-    done.abort()
-    setTimeout(run)
-  }
-  for (const type of RELEASES)
-    window.addEventListener(type, release, { capture: true, signal: done.signal })
-  // The window losing focus ends the press too; a field's own blur reaches it only in capture.
-  window.addEventListener('blur', (event) => event.target === window && release(), {
-    signal: done.signal,
-  })
+  waiting.push(run)
+  safety ??= setTimeout(release, SAFETY_MS)
 }
 
 /** What an input may commit. A host serialises it into the URL. */
@@ -79,6 +85,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     optional: { type: Boolean },
     layout: { type: String, reflect: true },
     resetLabel: { type: String, attribute: 'reset-label' },
+    shownRefusal: { state: true },
   }
 
   /** The filter key, e.g. `p.threshold`. Without it no `lintje-values-change` is sent. */
@@ -174,20 +181,26 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 
   #refusal = ''
 
+  /** The refusal as the field draws it; it follows `refusal` when the field reads its text. */
+  protected shownRefusal: string = ''
+
+  /** What the text typed so far would be refused for: the form is held, nothing is drawn yet. */
+  protected holdRefusal(message: string): void {
+    if (message === this.#refusal) return
+    this.#refusal = message
+    this.syncValidity()
+  }
+
   /**
-   * Sets what the typed text is refused for, so the form is held at once. `show` draws the
-   * message: after a pointer press that left the field, so what was pressed does not move away.
+   * The field read its text, or its value was set: the form is held or let go at once, and the
+   * message drawn or taken away after a pointer press that left the field, so what was pressed
+   * does not move away under the pointer.
    */
-  protected refuse(message: string, show?: () => void): void {
-    if (message !== this.#refusal) {
-      this.#refusal = message
-      this.syncValidity()
-    }
-    if (message && show) {
-      afterPress(() => {
-        if (this.#refusal === message) show()
-      })
-    }
+  protected refuse(message: string): void {
+    this.holdRefusal(message)
+    afterPress(() => {
+      if (this.#refusal === message) this.shownRefusal = message
+    })
   }
 
   /**
