@@ -39,9 +39,10 @@
     padding: var(--space-2) 0;
     background: var(--color-bg-page);
   }
-  /* The page scrolls: the shell's pinned bar stands over the top of the viewport. */
+  /* The page scrolls: the shell's pinned bar stands over the top of the viewport, and the row of
+     tabs of a page head under it (the shell's line). */
   .lintje-chat--page .lintje-chat__message:not([editing]) {
-    top: var(--h-topbar);
+    top: var(--lintje-shell-top, var(--h-topbar));
   }
 }
 
