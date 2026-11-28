@@ -12,10 +12,6 @@ const KNOWN: Record<string, string[]> = {
   'src/components/chat/chat/chat.ts': ['is-replaced'],
   // The card test finds the loading card by it.
   'src/components/tables/card/card.ts': ['is-loading'],
-  // No rule and no use yet: #422.
-  'src/components/chat/chat-composer/chat-composer.ts': ['is-dragging'],
-  'src/components/content/log-viewer/log-viewer.ts': ['is-open'],
-  'src/components/tables/person-group/person-group.ts': ['is-empty'],
 }
 
 const STATE = /(?<![\w-])((?:is|has)-[a-z][a-z0-9-]*)(?![\w-])/g

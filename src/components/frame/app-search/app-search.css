@@ -2,6 +2,7 @@
 
 /* ------------------------------------------------------------------------ */
 
+/* 80/81 like a drawer: under a modal (82), a dialog (83), a popover (85) and a toast (87). */
 .lintje-app-search__scrim {
   position: fixed;
   z-index: 80;
