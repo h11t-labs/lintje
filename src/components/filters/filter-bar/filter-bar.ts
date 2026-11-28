@@ -289,6 +289,7 @@ export class LintjeFilterBar extends LintjeElement {
     const options = filter.options ?? []
     switch (filter.kind) {
       // Every control is `hide-label`: the `lintje-field` around it draws the label.
+      // `modified` beside `bold`: the field draws the dot, the control only carries the state.
       case 'segmented':
         return html`<lintje-segmented
           ?stacked=${stacked}
@@ -297,6 +298,7 @@ export class LintjeFilterBar extends LintjeElement {
           value=${(value as string) ?? ''}
           .options=${options}
           ?bold=${modified}
+          ?modified=${modified}
           @lintje-change=${(event: CustomEvent<string>) => onChange(event.detail)}
         ></lintje-segmented>`
       case 'select':

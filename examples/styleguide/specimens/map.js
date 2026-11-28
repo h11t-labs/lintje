@@ -267,6 +267,25 @@ export default {
           // No `height`: the map takes its own, 400 px and 280 on a phone.
           setup: mapSetup(map, { basemap: DEMO_BASEMAP, basemapDark: DEMO_BASEMAP_DARK, height: undefined, title: `${map.title} · ondergrond` }),
         })),
+        {
+          label: 'Ondergrond met lange bronvermelding',
+          note: 'Op een telefoon loopt een lange bronvermelding over twee regels. De schaal en de hint staan erboven, de selectie in een rij onder de kaart.',
+          // In a page of its own, 390 px wide: the map takes its phone layout only below 768 px.
+          frame: true,
+          phone: true,
+          html: MAP_TILE,
+          setup(stage) {
+            const points = MAPS.find((map) => map.id === 'map-points')
+            const basemap = { ...DEMO_BASEMAP, attribution: `${DEMO_BASEMAP.attribution}; kaartgegevens onder de Open Database License` }
+            mapSetup(points, {
+              basemap,
+              basemapDark: { ...basemap, layers: DEMO_BASEMAP_DARK.layers },
+              height: undefined,
+              selectedId: points.data.values[0].id,
+              title: `${points.title} · lange bronvermelding`,
+            })(stage)
+          },
+        },
       ],
     },
   ],
