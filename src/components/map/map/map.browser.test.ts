@@ -107,6 +107,27 @@ describe('the map', () => {
     expect(inside(mark(element, 'gro').getBoundingClientRect(), area)).toBe(true)
   })
 
+  it.each([0.625, 1.5])(
+    'moves a mark the keyboard reaches out from under the zoom buttons, at scale %s',
+    async (scale) => {
+      const element = await mount()
+      // A host that scales the map, as a slide does; Leaflet's pan is in the layout's px.
+      const frame = element.parentElement!
+      frame.style.transform = `scale(${scale})`
+      frame.style.transformOrigin = '0 0'
+      await settle()
+      expect(overlaps(mark(element, 'gro').getBoundingClientRect(), zoomButtons(element))).toBe(
+        true,
+      )
+      await keyboardFocus(mark(element, 'gro'))
+      await expect
+        .poll(() => overlaps(mark(element, 'gro').getBoundingClientRect(), zoomButtons(element)))
+        .toBe(false)
+      const area = root(element).querySelector('.lintje-map-chart__area')!.getBoundingClientRect()
+      expect(inside(mark(element, 'gro').getBoundingClientRect(), area)).toBe(true)
+    },
+  )
+
   it('draws the ring of the map itself inside it, where the area does not clip it', async () => {
     const element = await mount()
     const container = root(element).querySelector<HTMLElement>('.leaflet-container')!
