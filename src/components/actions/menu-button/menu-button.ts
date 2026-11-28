@@ -429,7 +429,10 @@ export class LintjeMenuButton extends LintjeElement {
           busy
             ? html`<span class="lintje-menu-button__busy" aria-hidden="true"></span>`
             : this.leadingIcon
-              ? renderIcon(this.leadingIcon, { size: BUTTON_ICON_SIZE, className: 'lintje-button__icon' })
+              ? renderIcon(this.leadingIcon, {
+                  size: BUTTON_ICON_SIZE,
+                  className: 'lintje-button__icon',
+                })
               : nothing
         }
         ${
@@ -532,7 +535,10 @@ export class LintjeMenuButton extends LintjeElement {
     >
       ${
         this.leadingIcon
-          ? renderIcon(this.leadingIcon, { size: BUTTON_ICON_SIZE, className: 'lintje-button__icon' })
+          ? renderIcon(this.leadingIcon, {
+              size: BUTTON_ICON_SIZE,
+              className: 'lintje-button__icon',
+            })
           : nothing
       }
       ${
