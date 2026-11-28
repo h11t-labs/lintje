@@ -183,8 +183,9 @@ expander.addEventListener('lintje-toggle', (event) => {
 })
 ```
 
-Het sluiten van een zwevende laag — een popover, de lijst of kalender van een veld — bubbelt niet:
-wie de laag opende, luistert op de laag zelf. Een venster eromheen hoort het sluiten van een
+De `lintje-close` van een popover bubbelt niet: wie de popover opende, luistert op de popover
+zelf. Een veld houdt het sluiten van zijn lijst of kalender voor zich en stuurt geen `lintje-close`.
+Een venster eromheen hoort het sluiten van een
 popover erin dus niet, en sluit niet mee als alleen de popover dichtgaat. Een venster of een toast
 in zijn inhoud stuurt wel een `lintje-close` die bubbelt, dus ook hier vergelijk je `event.target`:
 
