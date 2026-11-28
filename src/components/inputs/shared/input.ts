@@ -32,6 +32,43 @@ const OPTIONAL = '(niet verplicht)'
 const MODIFIED = 'afwijkend van standaard'
 const MISSING = 'Vul dit veld in.'
 
+// Each ends a press. A press can also end without a `pointerup`: a context menu, a drag, the
+// native popup of a select; a key means the reader moved on.
+const RELEASES = ['pointerup', 'pointercancel', 'contextmenu', 'dragstart', 'dragend', 'keydown']
+/** Draws what waits anyway after this long, should a release never arrive. */
+const SAFETY_MS = 1000
+let pressed = false
+let tracking = false
+let waiting: (() => void)[] = []
+let safety: ReturnType<typeof setTimeout> | undefined
+
+function release(): void {
+  pressed = false
+  clearTimeout(safety)
+  safety = undefined
+  const runs = waiting
+  waiting = []
+  // After the click the release makes.
+  if (runs.length) setTimeout(() => runs.forEach((run) => run()))
+}
+
+/** Whether a pointer is down anywhere on the page, read when a press makes a field let go. */
+function trackPresses(): void {
+  if (tracking || typeof window === 'undefined') return
+  tracking = true
+  window.addEventListener('pointerdown', () => (pressed = true), true)
+  for (const type of RELEASES) window.addEventListener(type, release, true)
+  // The window losing focus ends the press; a field's own blur reaches it only in capture.
+  window.addEventListener('blur', (event) => event.target === window && release())
+}
+
+/** Runs `run` now, or once the pointer that is down is released: after the click it makes. */
+function afterPress(run: () => void): void {
+  if (!pressed) return run()
+  waiting.push(run)
+  safety ??= setTimeout(release, SAFETY_MS)
+}
+
 /** What an input may commit. A host serialises it into the URL. */
 export type InputValue = string | number | boolean | null
 
@@ -48,6 +85,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     optional: { type: Boolean },
     layout: { type: String, reflect: true },
     resetLabel: { type: String, attribute: 'reset-label' },
+    shownRefusal: { state: true },
   }
 
   /** The filter key, e.g. `p.threshold`. Without it no `lintje-values-change` is sent. */
@@ -97,6 +135,7 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
 
   constructor() {
     super()
+    trackPresses()
     this.addController({ hostUpdated: () => this.syncForm() })
   }
 
@@ -131,17 +170,57 @@ export abstract class LintjeInputElement extends LintjeGridItemElement {
     return this.required && !this.isDisabled && postsEmpty(this.postedValue)
   }
 
-  /** Reports `required` to the native form, the message anchored where the focus goes. */
+  /**
+   * The field's own message about the text typed in it that it cannot commit, `''` when there is
+   * none. It follows the typing, before the field shows it. While it stands the field holds back a
+   * native `<form>` and `lintje-form`; a host's `error` does not.
+   */
+  get refusal(): string {
+    return this.#refusal
+  }
+
+  #refusal = ''
+
+  /** The refusal as the field draws it; it follows `refusal` when the field reads its text. */
+  protected shownRefusal: string = ''
+
+  /** What the text typed so far would be refused for: the form is held, nothing is drawn yet. */
+  protected holdRefusal(message: string): void {
+    if (message === this.#refusal) return
+    this.#refusal = message
+    this.syncValidity()
+  }
+
+  /**
+   * The field read its text, or its value was set: the form is held or let go at once, and the
+   * message drawn or taken away after a pointer press that left the field, so what was pressed
+   * does not move away under the pointer.
+   */
+  protected refuse(message: string): void {
+    this.holdRefusal(message)
+    afterPress(() => {
+      if (this.#refusal === message) this.shownRefusal = message
+    })
+  }
+
+  /**
+   * Reports `required`, and typed text the field refused, to the native form, the message
+   * anchored where the focus goes.
+   */
   protected syncValidity(): void {
     const internals = this.internals
     if (!internals) return
-    if (!this.missing) {
+    const refusal = this.isDisabled ? '' : this.refusal
+    if (!this.missing && !refusal) {
       internals.setValidity({})
       return
     }
     const anchor = this.focusTarget
-    const message = (anchor as HTMLInputElement | null)?.validationMessage || MISSING
-    internals.setValidity({ valueMissing: true }, message, anchor ?? undefined)
+    if (refusal) internals.setValidity({ customError: true }, refusal, anchor ?? undefined)
+    else {
+      const message = (anchor as HTMLInputElement | null)?.validationMessage || MISSING
+      internals.setValidity({ valueMissing: true }, message, anchor ?? undefined)
+    }
     // A part a child element draws appears after the child's own update; once is enough.
     if (anchor || this.#waiting) return
     this.#waiting = true

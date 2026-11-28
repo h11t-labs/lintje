@@ -2,7 +2,7 @@
  * The date input: what it shows, what it sends, what it refuses, and the calendar's keys.
  * The arithmetic itself is `date-format.test.ts`.
  */
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import './date-input'
 import type { LintjeDateInput } from './date-input'
 
@@ -42,6 +42,11 @@ function listen(element: LintjeDateInput): { local: unknown[]; values: unknown[]
   )
   return seen
 }
+
+// A refusal is drawn after a pointer press ends: end one that another test file left down.
+beforeEach(() => {
+  window.dispatchEvent(new Event('pointerup'))
+})
 
 describe('lintje-date-input', () => {
   it('shows the ISO value as dd-mm-jjjj, with the hint tied to the field', async () => {
@@ -387,5 +392,46 @@ describe('a refusal', () => {
     await element.updateComplete
     expect(error()).toBeNull()
     expect(control(element).value).toBe('03-10-2026')
+  })
+})
+
+describe('a refusal while a pointer is down', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  const error = (element: LintjeDateInput): Element | null =>
+    element.shadowRoot!.querySelector('.lintje-field__error')
+
+  it('holds the form at once and draws the message after the release', async () => {
+    const element = await mount({ value: '2026-10-03' })
+    window.dispatchEvent(new Event('pointerdown'))
+    await type(element, '31-02-2026')
+    expect(element.refusal).toBe('Deze datum bestaat niet')
+    expect(error(element)).toBeNull()
+    window.dispatchEvent(new Event('pointerup'))
+    await new Promise((resolve) => setTimeout(resolve))
+    await element.updateComplete
+    expect(error(element)!.textContent).toContain('Deze datum bestaat niet')
+  })
+
+  it('draws it anyway when the release never comes', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    const element = await mount({ value: '2026-10-03' })
+    window.dispatchEvent(new Event('pointerdown'))
+    await type(element, '31-02-2026')
+    expect(error(element)).toBeNull()
+    vi.advanceTimersByTime(1001)
+    await element.updateComplete
+    expect(error(element)!.textContent).toContain('Deze datum bestaat niet')
+    expect(control(element).getAttribute('aria-invalid')).toBe('true')
+  })
+
+  it('draws it at once when a context menu ended the press', async () => {
+    const element = await mount({ value: '2026-10-03' })
+    window.dispatchEvent(new Event('pointerdown'))
+    window.dispatchEvent(new Event('contextmenu'))
+    await type(element, '31-02-2026')
+    expect(error(element)).not.toBeNull()
   })
 })

@@ -38,6 +38,11 @@ function listen(element: LintjeTimeInput): { local: unknown[]; values: unknown[]
   return seen
 }
 
+// A refusal is drawn after a pointer press ends: end one that another test file left down.
+beforeEach(() => {
+  window.dispatchEvent(new Event('pointerup'))
+})
+
 describe('lintje-time-input', () => {
   it('is a numeric text field named by its label, with the hint tied to it', async () => {
     const element = await mount({ value: '14:35' })

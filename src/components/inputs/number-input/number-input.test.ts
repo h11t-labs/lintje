@@ -34,6 +34,11 @@ async function said(element: LintjeNumberInput): Promise<string> {
   return region(element)
 }
 
+// A refusal is drawn after a pointer press ends: end one that another test file left down.
+beforeEach(() => {
+  window.dispatchEvent(new Event('pointerup'))
+})
+
 beforeEach(() => {
   document.body.innerHTML = ''
 })
