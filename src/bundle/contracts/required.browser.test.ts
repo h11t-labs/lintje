@@ -410,7 +410,6 @@ describe('refused typed text', () => {
   async function nativeForm(
     row: { tag: string; props: object },
     props: object = {},
-    makeButton: () => HTMLElement = submitButton,
   ): Promise<{
     form: HTMLFormElement
     element: Input
@@ -432,31 +431,63 @@ describe('refused typed text', () => {
       ...row.props,
       ...props,
     }) as unknown as Input
-    const button = makeButton()
+    const button = submitButton()
     form.append(element, button)
     document.body.append(form)
     await settled(element)
-    await (button as unknown as Partial<Input>).updateComplete
+    await settled(button as unknown as Input)
     return { form, element, button, invalid: () => invalid, submits: () => submitted }
   }
 
   describe.each(REFUSING)('$tag in a native form', (row) => {
-    it('holds the submit while it shows text it refused, also by its button', async () => {
-      const fill = { tag: row.tag, fill: {}, posts: [] }
-      const { form, element, submits } = await inForm(fill, {
-        ...row.props,
+    nativePress('holds the submit while it shows text it refused, also by its button', async () => {
+      const { form, element, button, invalid, submits } = await nativeForm(row, {
         value: row.value,
-        required: false,
       })
-      const button = submitButton()
-      form.append(button)
       await typeAndLeave(element, row.refused)
       expect(element.refusal).not.toBe('')
       expect(form.checkValidity()).toBe(false)
-      await userEvent.click(button)
-      form.requestSubmit()
+      const before = invalid()
+      const { landed, facts } = await press(button)
       await new Promise((resolve) => setTimeout(resolve, 20))
+      expect(landed, facts).toBe(true)
+      expect(invalid()).toBeGreaterThan(before)
       expect(submits()).toBe(0)
+    })
+
+    nativePress('submits a press on the button straight after a correction', async () => {
+      const { element, button, submits } = await nativeForm(row, { value: row.value })
+      await typeAndLeave(element, row.refused)
+      // The message is drawn: taking it away mid-press would move the button the other way.
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.old)
+      const { landed, facts } = await press(button)
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      expect(landed, facts).toBe(true)
+      expect(submits()).toBe(1)
+    })
+
+    it('is let go by a reset of the form and by its value set again', async () => {
+      const { form, element } = await nativeForm(row, { value: row.value })
+      const error = (): Element | null => element.renderRoot.querySelector('.lintje-field__error')
+      const typeOnly = async (text: string): Promise<void> => {
+        await userEvent.fill(element.renderRoot.querySelector('input')!, text)
+      }
+      const cases: [(text: string) => Promise<void>, () => void][] = [
+        [(text) => typeAndLeave(element, text), () => form.reset()],
+        [(text) => typeAndLeave(element, text), () => (element.value = row.value)],
+        [typeOnly, () => form.reset()],
+        [typeOnly, () => (element.value = row.value)],
+      ]
+      for (const [typeIt, letGo] of cases) {
+        await typeIt(row.refused)
+        expect(form.checkValidity()).toBe(false)
+        letGo()
+        await settled(element)
+        expect(element.refusal).toBe('')
+        expect(error()).toBeNull()
+        expect(element.renderRoot.querySelector('input')!.value).toBe(row.old)
+        expect(form.checkValidity()).toBe(true)
+      }
     })
 
     nativePress('holds a press on the button straight after typing', async () => {
@@ -468,37 +499,6 @@ describe('refused typed text', () => {
       expect(invalid()).toBeGreaterThan(0)
       expect(submits()).toBe(0)
       expect(element.refusal).not.toBe('')
-    })
-
-    it('DIAG press with autocomplete off on the inner input', async () => {
-      const { element, button, invalid, submits } = await nativeForm(row, {
-        value: row.value,
-        autocomplete: 'off',
-      })
-      const facts0 = element.renderRoot.querySelector('input')!.getAttribute('autocomplete')
-      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
-      const { landed, facts } = await press(button)
-      expect(landed, facts0 + ' ' + facts).toBe(true)
-      expect(invalid()).toBeGreaterThan(0)
-      expect(submits()).toBe(0)
-    })
-
-    it('DIAG press on a native submit button', async () => {
-      const native = (): HTMLElement =>
-        Object.assign(document.createElement('button'), {
-          type: 'submit',
-          textContent: 'Versturen',
-        })
-      const { element, button, invalid, submits } = await nativeForm(
-        row,
-        { value: row.value },
-        native,
-      )
-      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
-      const { landed, facts } = await press(button)
-      expect(landed, facts).toBe(true)
-      expect(invalid()).toBeGreaterThan(0)
-      expect(submits()).toBe(0)
     })
 
     it('draws its message once a press on the empty page is released', async () => {
@@ -573,6 +573,44 @@ describe('refused typed text', () => {
       }
       return summary.items
     }
+
+    it('holds Enter as it holds the button: the summary names the field', async () => {
+      const { form, element, submits } = await inLintjeForm()
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
+      await userEvent.keyboard('{Enter}')
+      await new Promise((resolve) => setTimeout(resolve, 20))
+      await (form as unknown as Input).updateComplete
+      expect(submits()).toBe(0)
+      expect(summaryItems(form)).toEqual([
+        { field: 'veld', label: 'Veld', message: element.refusal },
+      ])
+      expect(active()?.getRootNode()).toBe(element.shadowRoot)
+    })
+
+    it('is let go when the host writes the same value again', async () => {
+      const { form, element } = await inLintjeForm()
+      ;(form as unknown as { values: object }).values = { veld: row.value }
+      await settled(element)
+      await typeAndLeave(element, row.refused)
+      expect(element.refusal).not.toBe('')
+      ;(form as unknown as { values: object }).values = { veld: row.value }
+      await (form as unknown as Input).updateComplete
+      await settled(element)
+      expect(element.refusal).toBe('')
+      expect(element.renderRoot.querySelector('.lintje-field__error')).toBeNull()
+      expect(element.renderRoot.querySelector('input')!.value).toBe(row.old)
+    })
+
+    it('submits a press on the button straight after a correction', async () => {
+      const { form, element, button, submits } = await inLintjeForm()
+      ;(form as unknown as { values: object }).values = { veld: row.value }
+      await settled(element)
+      await typeAndLeave(element, row.refused)
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.old)
+      const { landed, facts } = await press(button)
+      expect(landed, facts).toBe(true)
+      expect(submits()).toBe(1)
+    })
 
     it('holds the submit, names the field in the summary and focuses it', async () => {
       const { form, element, button, submits } = await inLintjeForm()
@@ -653,5 +691,28 @@ describe('refused typed text', () => {
       expect(landed, facts).toBe(true)
       expect(submits).toBe(0)
     })
+  })
+
+  it('a submit by the host with the focus on a radio chooses nothing', async () => {
+    const form = document.createElement('lintje-form')
+    let values: Record<string, unknown> = {}
+    form.addEventListener('lintje-submit', (event) => {
+      values = (event as CustomEvent<{ values: Record<string, unknown> }>).detail.values
+    })
+    const group = Object.assign(document.createElement('lintje-radio-group'), {
+      name: 'veld',
+      label: 'Veld',
+      options: OPTIONS,
+    }) as unknown as Input
+    form.append(group)
+    document.body.append(form)
+    await settled(group)
+    const radio = group.renderRoot.querySelector<HTMLInputElement>('input[type="radio"]')!
+    radio.focus()
+    expect(active()).toBe(radio)
+    ;(form as unknown as { submit(): void }).submit()
+    await settled(group)
+    expect(radio.checked).toBe(false)
+    expect(values.veld ?? '').toBe('')
   })
 })
