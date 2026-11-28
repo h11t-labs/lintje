@@ -694,10 +694,9 @@
   --color-modal-title: var(--color-text-primary);
   /* The trail: on the small size, or on the body size, as the house style sets it. */
   --breadcrumbs-font: var(--text-small);
-  /* The site's foot: its payoff on the h2, or the house style's italic in the regular weight;
-     a column's heading as a label in capitals, or as an h2. */
+  /* The site's full foot: its payoff on the h2, or the house style's italic in the regular
+     weight; a column's heading as a label in capitals, or as an h2. */
   --footer-tagline-font: var(--text-h2);
-  --footer-compact-tagline-font: var(--text-translation);
   --footer-heading-font: var(--label-weight) var(--label-size)/1.4 var(--font-ui);
   --footer-heading-tracking: var(--label-tracking);
   --footer-heading-case: uppercase;
@@ -1030,7 +1029,6 @@
   --color-modal-title: var(--color-accent-text);
   --breadcrumbs-font: var(--text-ui);
   --footer-tagline-font: var(--text-tagline);
-  --footer-compact-tagline-font: var(--text-tagline);
   --footer-heading-font: var(--text-h2);
   --footer-heading-tracking: 0;
   --footer-heading-case: none;

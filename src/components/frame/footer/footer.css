@@ -81,7 +81,8 @@
   padding-top: var(--space-5);
   padding-bottom: var(--space-5);
 }
-.lintje-footer--compact .lintje-footer__tagline { font: var(--footer-compact-tagline-font); font-style: italic; }
+/* Small in both house styles, so it shares its row with the links. */
+.lintje-footer--compact .lintje-footer__tagline { font: var(--text-translation); font-style: italic; }
 .lintje-footer--compact .lintje-footer__bottom { padding-top: 0; border-top: 0; }
 .lintje-footer--compact .lintje-footer__meta-link {
   color: var(--color-footer-compact-link);
