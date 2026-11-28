@@ -134,7 +134,6 @@ export class LintjeMultiselect extends LintjeInputElement {
     window.removeEventListener('resize', this.onReflow)
     if (this.reflowFrame) cancelAnimationFrame(this.reflowFrame)
     this.reflowFrame = 0
-    setLayerOpen(this, false)
     super.disconnectedCallback()
   }
 
