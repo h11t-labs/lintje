@@ -17,6 +17,7 @@ import { shadowCss } from '../../../core/styles'
 import { place, samePlace, stand, viewport, type Place } from '../../shared/place'
 import tooltipCss from './tooltip.css?inline'
 import bubbleCss from '../../shared/tooltip-bubble.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 export const TOOLTIP_DELAY = 300
 /** How long the bubble waits after the pointer leaves: time to cross the gap onto it. */
@@ -81,8 +82,8 @@ export class LintjeTooltip extends LintjeElement {
    * and it hears Escape before any other layer, which then sees it answered and stays open.
    */
   private readonly onKeydown = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || !this.open) return
-    event.preventDefault()
+    if (!isFreshEscape(event) || !this.open) return
+    answerEscape(event)
     this.hide()
   }
   /** Fixed to the viewport, so it is placed again when what holds its element scrolls. */

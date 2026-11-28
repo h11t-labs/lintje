@@ -1234,10 +1234,7 @@ const LAYERED: [string, (stage: HTMLElement) => Promise<Layers>][] = [
     async (stage) => {
       const modal = create<Lit & { open: boolean; heading: string }>('lintje-modal')
       modal.heading = 'Details'
-      // The popover's own close bubbles through the modal: only the modal's counts.
-      modal.addEventListener('lintje-close', (event) => {
-        if (event.target === modal) modal.open = false
-      })
+      modal.addEventListener('lintje-close', () => (modal.open = false))
       stage.append(modal)
       modal.open = true
       await modal.updateComplete

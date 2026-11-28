@@ -75,6 +75,25 @@ describe('lintje-filter-bar', () => {
     await element.updateComplete
     expect(segmented().bold).toBe(false)
   })
+
+  it('marks a segmented filter off its default with the dot and its words, as it does a select', async () => {
+    const element = await mount()
+    const field = () => element.shadowRoot!.querySelector('lintje-field')!
+    const dot = () => field().shadowRoot!.querySelector('.lintje-filter-field__dot')
+    const label = () => field().shadowRoot!.querySelector('.lintje-filter-field__label')!
+    expect(dot()).not.toBeNull()
+    expect(label().textContent).toContain('afwijkend van standaard')
+    const segmented = element.shadowRoot!.querySelector('lintje-segmented')!
+    expect(segmented.modified).toBe(true)
+    // One dot: the control's label is hidden, the field's draws it.
+    expect(segmented.renderRoot.querySelector('.lintje-label__dot')).toBeNull()
+    element.data = { ...element.data!, filters: [{ ...REGION, value: 'alle' }] }
+    await element.updateComplete
+    await field().updateComplete
+    expect(dot()).toBeNull()
+    expect(label().textContent).not.toContain('afwijkend van standaard')
+    expect(element.shadowRoot!.querySelector('lintje-segmented')!.modified).toBe(false)
+  })
 })
 
 describe('the date range in the filter bar', () => {

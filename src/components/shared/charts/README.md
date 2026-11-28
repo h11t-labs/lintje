@@ -141,7 +141,8 @@ new ChartController(() => this.requestUpdate())
 - `attach` — een gebonden `ref`-callback voor het buitenste element van de grafiek. Elke
   renderfunctie plaatst hem zelf; de host doet niets.
 - `width`, `height`, `inView` — wat `attach` meet. De viewBox wordt 1:1 gezet op
-  de gemeten pixels, zodat astekst van 12 px 12 px blijft in een smalle tegel; de
+  de gemeten pixels van de opmaak, zodat astekst van 12 px 12 px blijft in een smalle tegel, ook
+  als een voorouder het geheel schaalt (`transform: scale`); de
   hoogte komt uit een token dat op het element zelf gelezen wordt, zodat een lokale override (de
   `--chart-h-main` van de modal, de hoogte van de body) wordt opgepikt. `inView` is de poort voor het intekenen: de
   markeringen blijven in hun beginstand tot 35 % van de grafiek in beeld is geweest, één keer.

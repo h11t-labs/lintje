@@ -287,7 +287,7 @@ describe('the map on a basemap', () => {
   it.each([
     ['the classic style', null],
     ['the new style', 'new'],
-  ])('lifts the scale bar on a phone over a credit of two lines, in %s', async (_, style) => {
+  ])('lifts the scale bar, hint and selection over a two-line credit, in %s', async (_, style) => {
     await page.viewport(390, 844)
     await expect.poll(() => window.innerWidth).toBe(390)
     if (style) document.documentElement.dataset.styleVersion = style
@@ -298,15 +298,38 @@ describe('the map on a basemap', () => {
             ...BASEMAP,
             attribution: '© OpenStreetMap contributors, via terrestris, met de luchtfoto van PDOK',
           },
+          selectedId: 'utr',
+          controls: { rect: true },
         },
         390,
       )
       await ready(element)
       const scale = root(element).querySelector('.lintje-map-chart__scale-bar')!
       const credit = root(element).querySelector('.leaflet-control-attribution')!
+      const selection = root(element).querySelector('.lintje-map-chart__selection')!
       await expect.poll(() => credit.getBoundingClientRect().height).toBeGreaterThan(24)
       expect(overlaps(scale.getBoundingClientRect(), credit.getBoundingClientRect())).toBe(false)
       expect(overlaps(scale.getBoundingClientRect(), zoomButtons(element))).toBe(false)
+      expect(overlaps(selection.getBoundingClientRect(), credit.getBoundingClientRect())).toBe(
+        false,
+      )
+      // A tool in hand shows its hint, the short one for a finger, along the bottom.
+      root(element).querySelector<HTMLButtonElement>('.lintje-map-chart__tool')!.click()
+      const hint = (): Element | null => root(element).querySelector('.lintje-map-chart__hint')
+      await expect.poll(hint).not.toBeNull()
+      const box = hint()!.getBoundingClientRect()
+      expect(overlaps(box, credit.getBoundingClientRect())).toBe(false)
+      expect(overlaps(box, scale.getBoundingClientRect())).toBe(false)
+      expect(overlaps(box, zoomButtons(element))).toBe(false)
+      // The keyboard's hint is longer and wraps; it stays clear of the zoom buttons too.
+      await keyboardFocus(root(element).querySelector<HTMLElement>('.leaflet-container')!)
+      await expect.poll(() => hint()?.textContent?.trim()).toBe(TOOL_HINTS.rect.keys)
+      const keys = hint()!.getBoundingClientRect()
+      expect(overlaps(keys, credit.getBoundingClientRect())).toBe(false)
+      expect(overlaps(keys, scale.getBoundingClientRect())).toBe(false)
+      expect(overlaps(keys, zoomButtons(element))).toBe(false)
+      const layers = root(element).querySelector('.lintje-map-chart__layers')
+      if (layers) expect(overlaps(keys, layers.getBoundingClientRect())).toBe(false)
     } finally {
       delete document.documentElement.dataset.styleVersion
       await page.viewport(1440, 900)
@@ -513,6 +536,14 @@ describe('the map and the keyboard', () => {
       position: { x: box.width / 2, y: box.height / 2 },
     })
     await expect.poll(draft).not.toBeNull()
+    // The focus is still on the tool button, whose tooltip shows: that is the first Escape's.
+    const tip = (): Element | null =>
+      tool(element).closest('lintje-tooltip')?.shadowRoot?.querySelector('.lintje-tooltip') ?? null
+    if (tip()) {
+      await userEvent.keyboard('{Escape}')
+      await expect.poll(tip).toBeNull()
+      expect(draft()).not.toBeNull()
+    }
     await userEvent.keyboard('{Escape}')
     await expect.poll(draft).toBeNull()
     expect(on()).toBe(true)

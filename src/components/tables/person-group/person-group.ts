@@ -82,7 +82,7 @@ export class LintjePersonGroup extends LintjeElement {
     const people = this.people ?? []
     const size = this.size
     if (people.length === 0) {
-      return html`<span class="lintje-person-group is-empty"
+      return html`<span class="lintje-person-group"
         >${renderAvatar(null, { size })}<span class="lintje-person-group__empty"
           >${this.empty}</span
         ></span

@@ -451,7 +451,7 @@ die meldt een vak dat hij opnieuw waarneemt nog vóór het scherm ververst.
 
 `this.emit()` (`core/element.ts`) stuurt één `CustomEvent`, bubbling en composed, zodat het het
 element verlaat en de host bereikt; `emitLocal()` is alleen bubbling en stopt bij de shadow root die
-het onderdeel bevat. Wat een host ervan ziet en hoe hij antwoordt, staat in
+het onderdeel bevat; `emitOwn()` bubbelt niet en is alleen op het element zelf te horen. Wat een host ervan ziet en hoe hij antwoordt, staat in
 [`docs/guides/events.md`](docs/guides/events.md); welke tag wat stuurt, staat in de referentie van de
 styleguide, gelezen uit de `emit()`-aanroepen.
 
@@ -472,6 +472,9 @@ styleguide, gelezen uit de `emit()`-aanroepen.
 - **Een element dat een onderdeel opwerpt, stopt de composed events van dat onderdeel**: de grafiektegel, de
   kaarttegel en de datatabel roepen `stopPropagation()` aan op de events van hun tegel en hun modal,
   de shell op die van zijn toast. Eén actie is dan één regel in het log van een host.
+- **Een zwevende laag stuurt zijn sluiten met `emitOwn()`**: de `lintje-close` van een popover
+  bubbelt niet, zodat een venster eromheen hem nooit voor zijn eigen sluiten aanziet. Wie de laag
+  opent, luistert op de laag zelf.
 - **Een invoer is form-associated** (`LintjeInputElement`): in een native `<form>` post hij wat
   `formEntries()` (`components/shared/controls.ts`) van zijn waarde maakt. Een bedieningselement waarvan de geposte
   vorm afwijkt van zijn waarde, overschrijft `postedValue`.

@@ -39,7 +39,10 @@ export class LintjeSegmented extends LintjeInputElement {
   }
 
   value: string = ''
-  /** Bold the chosen option, as a modified filter does. */
+  /**
+   * Bold the chosen option, as a modified filter does. The chosen option is bold already, so it
+   * shows nothing: `modified` draws the dot at the label.
+   */
   bold: boolean = false
   stacked: boolean = false
   declare options?: FilterOption[]

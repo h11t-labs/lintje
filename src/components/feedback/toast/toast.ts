@@ -29,6 +29,7 @@ import { statusIcon, type Tone } from '../../shared/tone'
 import toastCss from './toast.css?inline'
 import dialogCloseCss from '../../shared/dialog-close.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
+import { answerEscape, isFreshEscape } from '../../../core/escape'
 
 const LIFETIME = 6000
 
@@ -94,7 +95,8 @@ export class LintjeToast extends LintjeElement {
 
   /** An Escape elsewhere is not the toast's; its own goes no further, so a window around stays. */
   readonly #onKeyDown = (event: KeyboardEvent): void => {
-    if (event.key !== 'Escape' || event.defaultPrevented) return
+    if (!isFreshEscape(event)) return
+    answerEscape(event)
     event.stopPropagation()
     this.#close()
   }
