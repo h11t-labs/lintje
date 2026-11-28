@@ -410,6 +410,7 @@ describe('refused typed text', () => {
   async function nativeForm(
     row: { tag: string; props: object },
     props: object = {},
+    makeButton: () => HTMLElement = submitButton,
   ): Promise<{
     form: HTMLFormElement
     element: Input
@@ -431,11 +432,11 @@ describe('refused typed text', () => {
       ...row.props,
       ...props,
     }) as unknown as Input
-    const button = submitButton()
+    const button = makeButton()
     form.append(element, button)
     document.body.append(form)
     await settled(element)
-    await settled(button as unknown as Input)
+    await (button as unknown as Partial<Input>).updateComplete
     return { form, element, button, invalid: () => invalid, submits: () => submitted }
   }
 
@@ -467,6 +468,37 @@ describe('refused typed text', () => {
       expect(invalid()).toBeGreaterThan(0)
       expect(submits()).toBe(0)
       expect(element.refusal).not.toBe('')
+    })
+
+    it('DIAG press with autocomplete off on the inner input', async () => {
+      const { element, button, invalid, submits } = await nativeForm(row, {
+        value: row.value,
+        autocomplete: 'off',
+      })
+      const facts0 = element.renderRoot.querySelector('input')!.getAttribute('autocomplete')
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
+      const { landed, facts } = await press(button)
+      expect(landed, facts0 + ' ' + facts).toBe(true)
+      expect(invalid()).toBeGreaterThan(0)
+      expect(submits()).toBe(0)
+    })
+
+    it('DIAG press on a native submit button', async () => {
+      const native = (): HTMLElement =>
+        Object.assign(document.createElement('button'), {
+          type: 'submit',
+          textContent: 'Versturen',
+        })
+      const { element, button, invalid, submits } = await nativeForm(
+        row,
+        { value: row.value },
+        native,
+      )
+      await userEvent.fill(element.renderRoot.querySelector('input')!, row.refused)
+      const { landed, facts } = await press(button)
+      expect(landed, facts).toBe(true)
+      expect(invalid()).toBeGreaterThan(0)
+      expect(submits()).toBe(0)
     })
 
     it('draws its message once a press on the empty page is released', async () => {
