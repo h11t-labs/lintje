@@ -144,7 +144,6 @@ export class LintjePopover extends LintjeElement {
     if (this.reflowFrame) cancelAnimationFrame(this.reflowFrame)
     this.reflowFrame = 0
     this.#anchorSize.disconnect()
-    setLayerOpen(this, false)
     super.disconnectedCallback()
   }
 
