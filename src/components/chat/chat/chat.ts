@@ -28,7 +28,7 @@ import { deepActiveElement, holdsFocus } from '../../../core/focus'
 import { scrollRoot } from '../../../core/host-config'
 import { MediaController } from '../../../core/media'
 import { prefersReducedMotion } from '../../../core/motion'
-import { keepRoom, releaseRoom } from '../../../core/scroll-room'
+import { keepRoom, releaseRoom, watchRoom } from '../../../core/scroll-room'
 import { shadowCss } from '../../../core/styles'
 import { iconStyles, renderIcon } from '../../../icons/render'
 import '../../actions/button/button'
@@ -128,6 +128,7 @@ export class LintjeChat extends LintjeElement {
   #top = 0
   #growth: ResizeObserver | null = null
   #footerSize: ResizeObserver | null = null
+  #unwatchRoom: (() => void) | null = null
   readonly #mobile = new MediaController(this)
   readonly #low = new MediaController(this, LOW)
   #wasLow = false
@@ -137,6 +138,11 @@ export class LintjeChat extends LintjeElement {
   override connectedCallback(): void {
     super.connectedCallback()
     window.addEventListener('scroll', this.#onScroll, { capture: true, passive: true })
+    // The shell's line (`--lintje-shell-top`) moves without a render or resize of this element:
+    // the shell tells the page's scroller, and the question sticks and claims from that line.
+    this.#unwatchRoom = watchRoom(scrollRoot() ?? document.documentElement, () =>
+      this.reserveRoom(),
+    )
     if (typeof ResizeObserver === 'undefined') return
     // The start screen rests at its top; a conversation rests at its end.
     this.#growth = new ResizeObserver(() => {
@@ -153,6 +159,8 @@ export class LintjeChat extends LintjeElement {
     this.#growth = null
     this.#footerSize?.disconnect()
     this.#footerSize = null
+    this.#unwatchRoom?.()
+    this.#unwatchRoom = null
     releaseRoom(this)
     super.disconnectedCallback()
   }

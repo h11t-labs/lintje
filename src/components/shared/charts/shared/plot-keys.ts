@@ -4,7 +4,7 @@
  * and a status region saying it. Home and End go to the ends.
  */
 import { html, type TemplateResult } from 'lit'
-import type { ChartController, TooltipContent } from './controller'
+import { screenScale, type ChartController, type TooltipContent } from './controller'
 
 /** Where a category's tooltip stands, in the drawing's own px, and what it says. */
 export interface PlotPoint {
@@ -70,12 +70,13 @@ export function plotKeys(
     const anchor = drawing.closest('[data-tooltip-anchor]')
     const box = drawing.getBoundingClientRect()
     const origin = anchor?.getBoundingClientRect() ?? box
+    const scale = anchor ? screenScale(anchor) : 1
     controller.liftAt(index)
     controller.status = spoken ? (point.sentence ?? tooltipSentence(point.content)) : ''
-    const left = box.left - origin.left
+    const left = (box.left - origin.left) / scale
     controller.showTooltipAt(
       left + point.x,
-      box.top - origin.top + point.y,
+      (box.top - origin.top) / scale + point.y,
       point.content,
       point.side ?? (point.flip != null ? left + point.flip : undefined),
     )
