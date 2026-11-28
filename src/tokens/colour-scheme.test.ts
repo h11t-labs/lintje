@@ -1499,7 +1499,13 @@ describe('a mark on a surface other than the plain one', () => {
         `${C}/content/audio-player/audio-player.css`,
         '.lintje-audio-player__level',
         'background',
-        '--color-border-field',
+        '--color-slider-track',
+      ],
+      [
+        `${C}/content/shared/player.css`,
+        '.lintje-player__bar',
+        'background',
+        '--color-slider-track',
       ],
       [
         `${C}/shared/month-grid.css`,
