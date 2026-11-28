@@ -1,5 +1,6 @@
 /** A text field with a button at its end: box and button read as one frame, in both house styles. */
 import { afterEach, describe, expect, it } from 'vitest'
+import '../../actions/button/button'
 import './text-input'
 
 type Field = HTMLElement & { updateComplete: Promise<unknown> }
@@ -72,4 +73,25 @@ describe.each(FIELDS)('a text field with %s', (_, own) => {
     expect(corners(button)).toEqual(['0px', '0px', '0px', '0px'])
     if (suffix) expect(corners(suffix)).toEqual(['0px', '0px', '0px', '0px'])
   })
+})
+
+it('leaves a host no corner to set: a button is never rounder than the small corner', async () => {
+  document.documentElement.dataset.styleVersion = 'new'
+  document.body.style.setProperty('--lintje-button-radius', '12px')
+  try {
+    const button = document.createElement('lintje-button') as Field
+    button.textContent = 'Opslaan'
+    document.body.append(button)
+    await button.updateComplete
+    expect(corners(button.shadowRoot!.querySelector('.lintje-button')!)).toEqual([
+      '4px',
+      '4px',
+      '4px',
+      '4px',
+    ])
+    const { button: own } = await field({ action: 'Zoek' })
+    expect(corners(own)).toEqual(['0px', '4px', '4px', '0px'])
+  } finally {
+    document.body.style.removeProperty('--lintje-button-radius')
+  }
 })
