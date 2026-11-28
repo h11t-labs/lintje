@@ -717,8 +717,10 @@
   --page-header-tabs-inset: 0px;
   --page-header-band-inset: var(--space-6);
   --page-header-band-inset-narrow: var(--page-pad-x);
-  /* A field's label: small, or on the body size, as the house style's form field has it. */
-  --field-label-size: 0.875rem;
+  /* A field's label: the host's font at the label's size, or the body font, as the house
+     style's form field has it. `initial` leaves `font` unset, so the label inherits the host's. */
+  --field-label-font: initial;
+  --field-label-size: var(--label-size);
   /* The select: its own width, or the column's up to a field's widest, as a text field. */
   --select-width: 180px;
   --select-max-width: none;
@@ -1042,6 +1044,7 @@
   --page-header-tabs-inset: calc(var(--page-pad-x) + var(--page-gutter));
   --page-header-band-inset: calc(var(--page-pad-x) + var(--page-gutter));
   --page-header-band-inset-narrow: calc(var(--page-pad-x) + var(--page-gutter));
+  --field-label-font: var(--text-ui);
   --field-label-size: 1rem;
   --select-width: 100%;
   --select-max-width: var(--w-field);

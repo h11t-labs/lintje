@@ -502,3 +502,57 @@ it('draws the field box in another fill in dark', async () => {
   }
   expect(await fill('light')).not.toBe(await fill('dark'))
 })
+
+/* The label ----------------------------------------------------------------- */
+
+// The earlier style sets only the label's size and weight: the rest is the host's, also the
+// digits of a range's value and the page's font under a plain textarea. The new style sets the
+// whole body font.
+describe('the label', () => {
+  const font = (element: Element) => {
+    const style = getComputedStyle(part(element, '.lintje-label')!)
+    return [
+      style.fontStyle,
+      style.fontSize,
+      style.lineHeight,
+      style.fontFamily,
+      style.fontVariantNumeric,
+    ]
+  }
+  const body = () => {
+    const probe = document.createElement('span')
+    probe.style.font = 'var(--text-ui)'
+    document.body.append(probe)
+    const { fontFamily } = getComputedStyle(probe)
+    probe.remove()
+    return fontFamily
+  }
+  const draw = async () => {
+    const range = (await mount('lintje-range', { min: 0, max: 100, value: 40 })).element
+    const page = document.createElement('div')
+    page.style.font = 'italic 18px/2 serif'
+    document.body.append(page)
+    const plain = Object.assign(document.createElement('lintje-textarea'), { label: 'Notitie' })
+    plain.setAttribute('variant', 'plain')
+    page.append(plain)
+    await (plain as Drawn).updateComplete
+    return { range, plain }
+  }
+
+  it("in the earlier style keeps the host's font at its own size", async () => {
+    const { range, plain } = await draw()
+    expect(font(range)).toEqual(['normal', '14px', '19.6px', body(), 'tabular-nums'])
+    expect(font(plain)).toEqual(['italic', '14px', '28px', 'serif', 'normal'])
+  })
+
+  it('in the new style is the body font', async () => {
+    document.documentElement.dataset.styleVersion = 'new'
+    try {
+      const { range, plain } = await draw()
+      for (const element of [range, plain])
+        expect(font(element)).toEqual(['normal', '16px', '22.4px', body(), 'normal'])
+    } finally {
+      delete document.documentElement.dataset.styleVersion
+    }
+  })
+})
