@@ -58,5 +58,4 @@
 .lintje-text-input__reveal,
 .lintje-text-input__action {
   flex: none; --h-button: var(--h-control);
-  --lintje-button-radius: 0 var(--radius-control) var(--radius-control) 0;
 }
