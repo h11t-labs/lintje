@@ -25,7 +25,8 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-2);
-  --lintje-button-border: 1px;
+  /* A field in error passes the width of its own frame to the button that stands against it. */
+  --lintje-button-border: var(--field-button-border, 1px);
   /* A minimum, so a wrapped label grows the button. The padding keeps a second line off the
      edge, and stays under what one line leaves of the height, so one line stays as high. */
   min-height: var(--lintje-button-height);
