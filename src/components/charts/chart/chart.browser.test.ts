@@ -734,3 +734,148 @@ describe('the fill of a key', () => {
     expect(opacity).toBe('0.25')
   })
 })
+
+// A chart on a slide that a host scales to the screen: the drawing keeps the layout's width,
+// and the tooltip stands at its mark on the screen.
+describe('a chart in a scaled container', () => {
+  const GROUPED: ChartSpec = {
+    kind: 'grouped-bar',
+    labels: ['Noord', 'Oost', 'Zuid'],
+    series: [
+      { label: 'Dit jaar', values: [30, 20, 10] },
+      { label: 'Vorig jaar', values: [25, 15, 12] },
+    ],
+  }
+
+  async function scaled(scale: number, chart: ChartSpec = GROUPED): Promise<LintjeChart> {
+    const frame = document.createElement('div')
+    frame.style.width = '1081px'
+    frame.style.transform = `scale(${scale})`
+    frame.style.transformOrigin = '0 0'
+    const tile = document.createElement('lintje-chart')
+    tile.data = {
+      title: 'Aanvragen per regio',
+      description: 'Noord, Oost en Zuid, dit jaar en vorig jaar.',
+      chart,
+    }
+    frame.append(tile)
+    document.body.append(frame)
+    await tile.updateComplete
+    return tile
+  }
+
+  const drawing = (tile: LintjeChart): SVGSVGElement | null =>
+    tile.shadowRoot!.querySelector<SVGSVGElement>('svg.lintje-chart__svg')
+  const width = (tile: LintjeChart): number => drawing(tile)?.viewBox.baseVal.width ?? 0
+
+  /** The width once it has stood still for three polls: the chart has measured itself. */
+  async function settledWidth(tile: LintjeChart): Promise<number> {
+    await expect.poll(() => drawing(tile)?.getClientRects().length ?? 0).toBeGreaterThan(0)
+    const seen: number[] = []
+    await expect
+      .poll(() => {
+        seen.push(width(tile))
+        const [a, b, c] = seen.slice(-3)
+        return c !== undefined && a === b && b === c
+      })
+      .toBe(true)
+    return seen.at(-1)!
+  }
+
+  it('draws at the width it has at scale 1', async () => {
+    const expected = await settledWidth(await scaled(1))
+    document.body.replaceChildren()
+    for (const scale of [0.625, 1.125, 1.5]) {
+      const tile = await scaled(scale)
+      expect(await settledWidth(tile), `at scale ${scale}`).toBe(expected)
+      document.body.replaceChildren()
+    }
+  })
+
+  /**
+   * Where the tooltip of the first category stands from the drawing's corner, on the screen.
+   * Measured from the drawing, not from the category's box: Firefox counts more in an svg
+   * group's box than the bars, so its middle is not the category's.
+   */
+  async function tooltipOffset(scale: number): Promise<{ x: number; y: number }> {
+    const tile = await scaled(scale)
+    await settledWidth(tile)
+    const group = tile.shadowRoot!.querySelectorAll('.lintje-chart__bar-group')[0]!
+    const bars = group.getBoundingClientRect()
+    const at = { clientX: bars.left + bars.width / 2, clientY: bars.top + bars.height / 2 }
+    group.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, ...at }))
+    const tooltip = (): HTMLElement | null =>
+      tile.shadowRoot!.querySelector<HTMLElement>('.lintje-chart-tooltip')
+    await expect.poll(tooltip).not.toBeNull()
+    // The tooltip is placed in the frame after it renders.
+    await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)))
+    const box = tooltip()!.getBoundingClientRect()
+    const corner = drawing(tile)!.getBoundingClientRect()
+    document.body.replaceChildren()
+    return { x: box.left - corner.left, y: box.top - corner.top }
+  }
+
+  it.each([0.625, 1.5])(
+    'stands the tooltip where it stands at scale 1, scaled with the slide, at scale %s',
+    async (scale) => {
+      const plain = await tooltipOffset(1)
+      const offset = await tooltipOffset(scale)
+      expect(Math.abs(offset.x - plain.x * scale)).toBeLessThan(2)
+      expect(Math.abs(offset.y - plain.y * scale)).toBeLessThan(2)
+    },
+  )
+
+  it('stands the tooltip of a heatmap cell at the cell, at scale 1.5', async () => {
+    const tile = await scaled(1.5, {
+      kind: 'heatmap',
+      columnLabels: ['ochtend', 'middag'],
+      rowLabels: ['ma', 'di'],
+      values: [
+        [12, 8],
+        [5, 3],
+      ],
+    })
+    const cell = (): HTMLElement =>
+      tile.shadowRoot!.querySelector<HTMLElement>('.lintje-heatmap__cell')!
+    await expect.poll(() => cell().getClientRects().length).toBeGreaterThan(0)
+    const box = cell().getBoundingClientRect()
+    const middle = { clientX: box.left + box.width / 2, clientY: box.top + box.height / 2 }
+    cell().dispatchEvent(new MouseEvent('mousemove', { bubbles: true, ...middle }))
+    const tooltip = (): HTMLElement | null =>
+      tile.shadowRoot!.querySelector<HTMLElement>('.lintje-chart-tooltip')
+    await expect.poll(tooltip).not.toBeNull()
+    // Right of the middle of the cell, in the slide's px.
+    await expect
+      .poll(() => Math.abs(tooltip()!.getBoundingClientRect().left - (middle.clientX + 12 * 1.5)))
+      .toBeLessThan(2)
+  })
+
+  it('takes a click beside a bar for that bar, at scale 1.5', async () => {
+    const tile = await scaled(1.5, {
+      kind: 'grouped-bar',
+      labels: ['Noord', 'Oost'],
+      series: [
+        {
+          label: 'Dit jaar',
+          values: [1, 30],
+          links: [
+            { id: 'noord', href: '?regio=noord' },
+            { id: 'oost', href: '?regio=oost' },
+          ],
+        },
+      ],
+    })
+    const picked: string[] = []
+    tile.addEventListener('lintje-mark-select', (event) => {
+      event.preventDefault()
+      picked.push(String((event as CustomEvent<{ id: string | null }>).detail.id))
+    })
+    await settledWidth(tile)
+    const bar = tile.shadowRoot!.querySelector('[data-mark-id="noord"]')!.getBoundingClientRect()
+    const hit = tile.shadowRoot!.querySelector<SVGRectElement>('.lintje-chart__hit')!
+    // 10 px above the sliver of a bar on the slide, 15 on the screen: within half of --h-target.
+    const at = { clientX: bar.left + bar.width / 2, clientY: bar.top - 15 }
+    hit.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true, ...at }))
+    expect(picked).toEqual(['noord'])
+  })
+})

@@ -49,6 +49,14 @@
 .lintje-text-input__control::-webkit-search-decoration { appearance: none; }
 
 /* --- A button at the end: Tonen, or the host's action ---------------------- */
-.lintje-text-input--button .lintje-text-input__box { border-right: 0; }
+/* Box and button read as one frame: square where they meet, the small corner only outside. */
+.lintje-text-input--button .lintje-text-input__box {
+  border-right: 0;
+  border-top-right-radius: 0; border-bottom-right-radius: 0;
+}
+.lintje-text-input--button .lintje-field__addon--suffix { border-radius: 0; }
 .lintje-text-input__reveal,
-.lintje-text-input__action { flex: none; --h-button: var(--h-control); }
+.lintje-text-input__action {
+  flex: none; --h-button: var(--h-control);
+  --lintje-button-radius: 0 var(--radius-control) var(--radius-control) 0;
+}

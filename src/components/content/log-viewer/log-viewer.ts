@@ -1030,7 +1030,7 @@ export class LintjeLogViewer extends LintjeContentTileElement {
           entry.details
             ? html`<button
                 type="button"
-                class=${classMap({ 'lintje-log-viewer__open': true, 'is-open': details })}
+                class="lintje-log-viewer__open"
                 tabindex=${tab}
                 aria-expanded=${String(details)}
                 aria-label="Details"
