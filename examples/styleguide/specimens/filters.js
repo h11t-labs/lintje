@@ -133,7 +133,7 @@ export default {
         },
         {
           label: 'Een afwijkend segmentenfilter',
-          note: 'Een filter dat afwijkt van zijn standaard staat vet, als lijst en als segmenten.',
+          note: 'Een filter dat afwijkt van zijn standaard krijgt de stip bij zijn label, als lijst en als segmenten.',
           html: '<lintje-filter-bar></lintje-filter-bar>',
           setup(stage) {
             stage.querySelector('lintje-filter-bar').data = {
