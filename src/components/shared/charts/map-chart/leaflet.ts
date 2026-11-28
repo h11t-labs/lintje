@@ -7,7 +7,7 @@
  */
 import * as L from 'leaflet'
 import { nothing as nothingTemplate, render } from 'lit'
-import type { ChartController } from '../shared/controller'
+import { screenScale, type ChartController } from '../shared/controller'
 import type { Mode } from '../../../../core/element'
 import { prefersReducedMotion } from '../../../../core/motion'
 import { ownsEscape, standsIn } from '../../../../core/focus'
@@ -523,9 +523,10 @@ export class LeafletSurface {
     const top = Math.max(rect.top, area.top)
     const bottom = Math.min(rect.bottom, area.bottom)
     this.#focusTip = true
+    const scale = screenScale(anchor)
     this.#controller.showTooltipAt(
-      (left + right) / 2 - area.left,
-      (top + bottom) / 2 - area.top,
+      ((left + right) / 2 - area.left) / scale,
+      ((top + bottom) / 2 - area.top) / scale,
       markTip(drawing, value),
     )
   }
@@ -1047,23 +1048,18 @@ export class LeafletSurface {
     const container = this.#container
     if (!map || !container || !keyboardFocus(element)) return false
     const origin = container.getBoundingClientRect()
-    const rect = element.getBoundingClientRect()
-    const box: Box = {
-      left: rect.left - origin.left,
-      right: rect.right - origin.left,
-      top: rect.top - origin.top,
-      bottom: rect.bottom - origin.top,
-    }
+    // The screen's boxes in the map's own px, which Leaflet pans in.
+    const scale = screenScale(container)
+    const local = (rect: DOMRect | Box): Box => ({
+      left: (rect.left - origin.left) / scale,
+      right: (rect.right - origin.left) / scale,
+      top: (rect.top - origin.top) / scale,
+      bottom: (rect.bottom - origin.top) / scale,
+    })
+    const box = local(element.getBoundingClientRect())
     const size = map.getSize()
     const view: Box = { left: 0, top: 0, right: size.x, bottom: size.y }
-    const overlays = container.parentElement
-      ? overlayBoxes(container.parentElement).map((overlay) => ({
-          left: overlay.left - origin.left,
-          right: overlay.right - origin.left,
-          top: overlay.top - origin.top,
-          bottom: overlay.bottom - origin.top,
-        }))
-      : []
+    const overlays = container.parentElement ? overlayBoxes(container.parentElement).map(local) : []
     const animate = !prefersReducedMotion()
     const shift = clearance(box, view, overlays, REVEAL_MARGIN)
     if (shift) {
