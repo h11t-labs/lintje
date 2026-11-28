@@ -12,6 +12,7 @@ import { resolve as resolvePath } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import './button'
 import '../icon-button/icon-button'
+import '../menu-button/menu-button'
 
 // Read from disk, not imported: vitest does not run the CSS pipeline, so an
 // `?inline` import comes back empty.
@@ -423,5 +424,41 @@ describe('lintje-button ARIA', () => {
   it('keeps the busy label in the accessibility tree: transparent, not visibility: hidden', () => {
     expect(buttonCss).toMatch(/\.is-busy \.lintje-button__label \{ opacity: 0; \}/)
     expect(buttonCss).not.toMatch(/\.is-busy \.lintje-button__label,/)
+  })
+})
+
+describe('the icon in a button', () => {
+  // As tall as the button's text, on either side, in every size and in the menu button.
+  const sizes = (element: Element): string[] =>
+    [...element.shadowRoot!.querySelectorAll('.lintje-button__icon')].map(
+      (icon) => icon.getAttribute('width') ?? '',
+    )
+
+  it.each(['regular', 'compact', 'chrome'])(
+    'is 16 px on both sides of a %s button',
+    async (size) => {
+      const button = await make('lintje-button', {
+        label: 'Downloaden',
+        ...({
+          size,
+          icon: 'functioneel-downloaden',
+          iconRight: 'functioneel-pijl-rechts',
+        } as object),
+      })
+      expect(sizes(button)).toEqual(['16', '16'])
+    },
+  )
+
+  it('is 16 px in the menu button and in its split form', async () => {
+    const plain = await make('lintje-menu-button', {
+      label: 'Exporteren',
+      ...({ leadingIcon: 'functioneel-downloaden' } as object),
+    })
+    expect(sizes(plain)).toEqual(['16', '16'])
+    const split = await make('lintje-menu-button', {
+      label: 'Exporteren',
+      ...({ leadingIcon: 'functioneel-downloaden', split: true } as object),
+    })
+    expect(sizes(split)).toEqual(['16', '16'])
   })
 })

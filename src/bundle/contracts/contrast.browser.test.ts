@@ -13,6 +13,9 @@ import '../../components/content/highlight/highlight'
 import '../../components/map/map/map'
 import '../../components/content/photo-wall/photo-wall'
 import type { ChatData, ChatQuestionsData, MapData, PhotoWallItem } from '../../types'
+import '../../components/inputs/range/range'
+import '../../components/content/audio-player/audio-player'
+import '../../components/content/video-player/video-player'
 
 type Lit = HTMLElement & { updateComplete: Promise<unknown> }
 
@@ -259,6 +262,74 @@ describe('a search match in lintje-highlight', () => {
           rgba(drawn.backgroundColor).slice(0, 3) as [number, number, number],
         ),
       ).toBeGreaterThanOrEqual(3)
+    },
+  )
+})
+
+// The track of a slider is a grey line under the accent fill: 3:1 on what it stands on, and not
+// the fill's colour, so the chosen stretch stands apart from it.
+interface Track {
+  name: string
+  parts: () => Promise<{ track: Element; fill: Element }>
+}
+
+const TRACKS: Track[] = [
+  {
+    name: 'de baan van lintje-range',
+    parts: async () => {
+      const element = await mount<Lit & { single: boolean; steps: number[]; value: number }>(
+        'lintje-range',
+        (range) => {
+          range.single = true
+          range.steps = [5, 10, 15, 20]
+          range.value = 10
+        },
+      )
+      return {
+        track: shadow(element, '.lintje-range__track'),
+        fill: shadow(element, '.lintje-range__fill'),
+      }
+    },
+  },
+  {
+    name: 'de positiebalk van lintje-video-player',
+    parts: async () => {
+      const element = await mount<Lit & { ready: boolean }>('lintje-video-player', (player) => {
+        player.style.width = '640px'
+      })
+      // Ready as with a loaded recording; a bar that waits for one keeps its own grey.
+      element.ready = true
+      await element.updateComplete
+      return {
+        track: shadow(element, '.lintje-player__bar'),
+        fill: shadow(element, '.lintje-player__bar-fill'),
+      }
+    },
+  },
+  {
+    name: 'de volumebalk van lintje-audio-player',
+    parts: async () => {
+      const element = await mount<Lit>('lintje-audio-player', (player) => {
+        player.style.width = '800px'
+      })
+      return {
+        track: shadow(element, '.lintje-audio-player__level'),
+        fill: shadow(element, '.lintje-audio-player__level-fill'),
+      }
+    },
+  },
+]
+
+describe.each(TRACKS)('$name', (row) => {
+  it.each(LOOKS)(
+    'reaches 3:1 in the %s style, %s, in another colour than its fill',
+    async (style, mode) => {
+      look(style, mode)
+      const { track, fill } = await row.parts()
+      const drawn = getComputedStyle(track).backgroundColor
+      const ground = groundOf(parent(track)!)
+      expect(contrastOf(drawn, 1, ground)).toBeGreaterThanOrEqual(3)
+      expect(rgba(getComputedStyle(fill).backgroundColor)).not.toEqual(rgba(drawn))
     },
   )
 })

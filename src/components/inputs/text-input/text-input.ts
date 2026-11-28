@@ -258,6 +258,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
             ? html`<lintje-button
               class="lintje-text-input__reveal"
               variant="secondary"
+              attached="start"
               ?disabled=${this.isDisabled}
               @click=${this.reveal}
               >${this.revealed ? 'Verbergen' : 'Tonen'}</lintje-button
@@ -269,6 +270,7 @@ export class LintjeTextInput extends LintjeFormInputElement {
             ? html`<lintje-button
               class="lintje-text-input__action"
               variant="secondary"
+              attached="start"
               ?disabled=${this.isDisabled}
               @click=${this.act}
               >${this.action}</lintje-button

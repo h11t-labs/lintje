@@ -13,6 +13,7 @@ import { iconStyles, renderIcon } from '../../../icons/render'
 import buttonCss from './button.css?inline'
 import screenOnlyCss from '../../shared/screen-only.css?inline'
 import { titleWhenCut } from '../../shared/cut-text'
+import { BUTTON_ICON_SIZE } from '../shared/button-icon'
 
 /**
  * `tertiary` is a word in the primary without a box, the house style's third weight; `inverse`
@@ -61,6 +62,7 @@ export class LintjeButton extends LintjeElement {
     description: { type: String },
     invalid: { type: Boolean },
     block: { type: Boolean, reflect: true },
+    attached: { type: String },
     slotted: { state: true },
   }
 
@@ -107,6 +109,12 @@ export class LintjeButton extends LintjeElement {
   invalid: boolean = false
   /** Fills the width of the line it stands on, as one action under a message or in a narrow column. */
   block: boolean = false
+  /**
+   * The side that stands against the field the button belongs to, drawn square so field and
+   * button read as one frame: `start` for the button at the end of a field. For a field's own
+   * button; a free-standing button leaves it unset.
+   */
+  declare attached?: 'start'
 
   /** Whether the slot holds anything. The empty label span is hidden, not removed: removing the
    * `<slot>` could make `slotchange` fire again. */
@@ -157,6 +165,7 @@ export class LintjeButton extends LintjeElement {
       [`lintje-button--${this.size}`]: true,
       'is-disabled': this.disabled && !this.busy,
       'is-busy': this.busy,
+      'lintje-button--attached-start': this.attached === 'start',
     })
     const busy = this.busy ? 'true' : nothing
     const disabled = unavailable ? 'true' : nothing
@@ -221,10 +230,7 @@ export class LintjeButton extends LintjeElement {
     return html`${this.busy ? html`<span class="lintje-button__busy" aria-hidden="true"></span>` : nothing}
       ${
         this.icon
-          ? renderIcon(this.icon, {
-              size: this.size === 'regular' ? 18 : 16,
-              className: 'lintje-button__icon',
-            })
+          ? renderIcon(this.icon, { size: BUTTON_ICON_SIZE, className: 'lintje-button__icon' })
           : nothing
       }
       <span
@@ -235,7 +241,7 @@ export class LintjeButton extends LintjeElement {
       ></span>
       ${
         this.iconRight
-          ? renderIcon(this.iconRight, { size: 16, className: 'lintje-button__icon' })
+          ? renderIcon(this.iconRight, { size: BUTTON_ICON_SIZE, className: 'lintje-button__icon' })
           : nothing
       }`
   }

@@ -130,12 +130,12 @@
 
 .lintje-audio-player__volume { display: flex; align-items: center; gap: var(--space-1); flex: none; }
 /* A transparent area above and below the line takes the pointer, as on the position bar. The
-   track is the field's edge (3:1) and the head marks the level, also when it is low or muted. */
+   head marks the level, also when it is low or muted. */
 .lintje-audio-player__level {
   position: relative;
   width: calc(2 * var(--space-10));
   height: 6px;
-  background: var(--color-border-field);
+  background: var(--color-slider-track);
   cursor: pointer;
   touch-action: none;
 }

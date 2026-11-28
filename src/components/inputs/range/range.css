@@ -7,7 +7,7 @@
 :host([hide-label]) .lintje-range { height: var(--h-control); }
 .lintje-range__track {
   position: absolute; left: 0; right: 0; height: 4px;
-  background: var(--color-border-default);
+  background: var(--color-slider-track);
 }
 /* `--color-accent-line`, not the primary: in dark the 4 px fill would be darker than its track
    and the handles' outline 1.25:1. */
@@ -55,6 +55,7 @@
 :host([single]) .lintje-range__input { pointer-events: auto; cursor: pointer; }
 /* Error marks the handle, not the track: a red track would fight the chosen stretch. */
 .lintje-range.is-error .lintje-range__input { --lintje-range-edge: var(--color-error-line); }
+:host(:disabled) .lintje-range__track { background: var(--color-border-default); }
 :host(:disabled) .lintje-range__fill { background: var(--color-border-strong); }
 :host(:disabled) .lintje-range__input { --lintje-range-edge: var(--color-border-strong); }
 :host(:disabled) .lintje-range__input::-webkit-slider-thumb { cursor: not-allowed; }

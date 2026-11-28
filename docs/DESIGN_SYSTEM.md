@@ -145,7 +145,7 @@ contrastondergrenzen verschillen:
 | Gebruik | Token | Ondergrens |
 |---|---|---|
 | Een vulling met witte inhoud erop | `--color-accent` (de primaire kleur zelf) | — |
-| Een lijn: omlijning, ring, baan van een schuifregelaar; ook de stip van een radio, die zonder witte inhoud op het oppervlak staat | `--color-accent-line` | 3:1 (WCAG 1.4.11) |
+| Een lijn: omlijning, ring, het gevulde stuk van een schuifregelaar; ook de stip van een radio, die zonder witte inhoud op het oppervlak staat | `--color-accent-line` | 3:1 (WCAG 1.4.11) |
 | Een woord, of een icoon dat ervoor in de plaats staat | `--color-accent-text`, `--color-link` | 4.5:1 (WCAG 1.4.3) |
 
 In licht zijn alle drie de primaire kleur. De lijntint is per constructie 3:1, dus **een woord
@@ -154,6 +154,10 @@ oppervlak (een gekozen rij, een actief menu-item, een term, vandaag in een gekoz
 in donker de teksttint: de lijntint haalt alleen op het oppervlak 3:1. Daarvoor zijn er
 `--color-selected-edge`, `--color-nav-active-edge`, `--color-term-line` en
 `--color-today-in-range`.
+
+**De baan van een schuifregelaar is grijs, geen themakleur**: `--color-slider-track`, 3:1 op het
+oppervlak, onder de regelaar, de positiebalk en de volumebalk. De vulling in de lijntint staat er
+zo los van, ook waar die even licht is als de baan.
 
 **Een tint voor de donkere modus tilt alleen de waargenomen lichtheid op** (OKLCH): hij houdt de
 eigen kleurtoon en chroma van de kleur, zodat hij leest als de primaire kleur, niet als
@@ -340,7 +344,8 @@ raken, en eronder de bron achter een streepje (`<cite>` of `<footer>` in het `<b
   van een afgerond kader (de werkbalk van de teksteditor, de stapknoppen van het getalveld, de
   toevoeging en de knop van een veld) volgt de hoek binnen die rand, anders tekent het de ronde
   hoek recht. Een veld met een knop aan zijn eind is één kader: recht waar veld en knop elkaar
-  raken, rond alleen aan de buitenkant.
+  raken, rond alleen aan de buitenkant. Dat zet het veld zelf op zijn eigen knop (`attached`); een
+  host heeft geen hoek om te zetten, dus geen knop wordt ronder dan de kleine hoek.
 - **De ene afgeronde hoek loopt nooit van de pagina af.** De vormtaal van de huisstijl is een
   rechthoek met één afgeronde hoek: hoogstens drie per beeld, spaarzaam, nooit een vlak met een
   hoek in een vlak met een hoek, en nooit op een vlak dat van de pagina afloopt. De band aan de kop
